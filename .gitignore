@@ -1,1 +1,32 @@
-build
+# Keep builds out-of-tree, but ignore just in case
+build*/
+**/build*/
+**/.cache/
+**/.west/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/.ninja_deps
+**/.ninja_log
+
+# Generated Zephyr outputs (if someone misbuilds in-tree)
+**/zephyr/.config
+**/zephyr/include/generated/
+**/zephyr/zephyr*.elf
+**/zephyr/zephyr*.map
+**/zephyr/zephyr*.bin
+**/zephyr/zephyr*.hex
+**/zephyr/merged.hex
+
+# Firmware bundles
+*.hex
+*.bin
+*.zip
+*.dfu
+
+# Editor + Python noise
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+.DS_Store
+

@@ -1,0 +1,1 @@
+When flashing with the jlink, either use mcuboot and sysbuild, or dont use either. Otherwise it overrites the bootloader and then no program runs. Source [link](https://forum.seeedstudio.com/t/cant-program-xiao-nrf52840-sense-using-nrf-connect-sdk-in-vscode/284577/44?page=3)

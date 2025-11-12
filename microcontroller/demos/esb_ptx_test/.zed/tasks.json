@@ -1,0 +1,13 @@
+[
+    {
+        "label": "Build",
+        "shell": {
+          "with_arguments": {
+            "program": "/bin/bash",
+            "args": ["-lc"]
+          }
+        },
+        "command": "TOOL=\"$HOME/ncs/toolchains/b2ecd2435d\"; export PATH=\"$TOOL/bin:$TOOL/usr/bin:$TOOL/usr/local/bin:$TOOL/opt/bin:$TOOL/opt/nanopb/generator-bin:$TOOL/nrfutil/bin:$TOOL/opt/zephyr-sdk/arm-zephyr-eabi/bin:$TOOL/opt/zephyr-sdk/riscv64-zephyr-elf/bin:$PATH\"; export LD_LIBRARY_PATH=\"$TOOL/lib:$TOOL/lib/x86_64-linux-gnu:$TOOL/usr/local/lib:${LD_LIBRARY_PATH:-}\"; export GIT_EXEC_PATH=\"$TOOL/usr/local/libexec/git-core\"; export GIT_TEMPLATE_DIR=\"$TOOL/usr/local/share/git-core/templates\"; export PYTHONHOME=\"$TOOL/usr/local\"; export PYTHONPATH=\"$TOOL/usr/local/lib/python3.12:$TOOL/usr/local/lib/python3.12/site-packages\"; export NRFUTIL_HOME=\"$TOOL/nrfutil/home\"; export ZEPHYR_TOOLCHAIN_VARIANT=\"zephyr\"; export ZEPHYR_SDK_INSTALL_DIR=\"$TOOL/opt/zephyr-sdk\"; source \"$HOME/ncs/v3.1.1/zephyr/zephyr-env.sh\"; \"$TOOL/usr/local/bin/python3\" -m west --version; \"$TOOL/usr/local/bin/python3\" -m west build -d \"$ZED_WORKTREE_ROOT/build\" -b xiao_ble/nrf52840/sense -p always \"$ZED_WORKTREE_ROOT\""
+      }
+    
+]
