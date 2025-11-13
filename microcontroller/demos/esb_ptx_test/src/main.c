@@ -239,7 +239,7 @@ int main(void)
 			if (err) {
 				LOG_ERR("Payload write failed, err %d", err);
 			}
-			tx_payload.data[1]++;
+			tx_payload.data[1] = tx_payload.data[1]+4;
 		}
 		k_sleep(K_MSEC(100));
 	}
