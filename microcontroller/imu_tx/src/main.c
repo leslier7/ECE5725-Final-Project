@@ -44,6 +44,17 @@ static struct esb_payload tx_payload = ESB_CREATE_PAYLOAD(0,
 	 RADIO_SHORTS_ADDRESS_RSSISTART_Msk |                                  \
 	 RADIO_SHORTS_DISABLED_RSSISTOP_Msk)
 
+static void leds_update(uint8_t value)
+{
+	uint32_t leds_mask =
+		(!(value % 8 > 0 && value % 8 <= 4) ? DK_LED1_MSK : 0) |
+		(!(value % 8 > 1 && value % 8 <= 5) ? DK_LED2_MSK : 0) |
+		(!(value % 8 > 2 && value % 8 <= 6) ? DK_LED3_MSK : 0) |
+		(!(value % 8 > 3) ? DK_LED4_MSK : 0);
+
+	dk_set_leds(leds_mask);
+}
+
 void event_handler(struct esb_evt const *event)
 {
 	ready = true;
@@ -51,6 +62,7 @@ void event_handler(struct esb_evt const *event)
 	switch (event->evt_id) {
 	case ESB_EVENT_TX_SUCCESS:
 		LOG_DBG("TX SUCCESS EVENT");
+		leds_update(tx_payload.data[1]);
 		break;
 	case ESB_EVENT_TX_FAILED:
 		LOG_DBG("TX FAILED EVENT");
@@ -198,16 +210,7 @@ int esb_initialize(void)
 	return 0;
 }
 
-static void leds_update(uint8_t value)
-{
-	uint32_t leds_mask =
-		(!(value % 8 > 0 && value % 8 <= 4) ? DK_LED1_MSK : 0) |
-		(!(value % 8 > 1 && value % 8 <= 5) ? DK_LED2_MSK : 0) |
-		(!(value % 8 > 2 && value % 8 <= 6) ? DK_LED3_MSK : 0) |
-		(!(value % 8 > 3) ? DK_LED4_MSK : 0);
 
-	dk_set_leds(leds_mask);
-}
 
 int main(void)
 {
@@ -267,7 +270,7 @@ int main(void)
 
 			ready = false;
 			esb_flush_tx();
-			leds_update(tx_payload.data[1]);
+			
 
 			err = esb_write_payload(&tx_payload);
 			if (err) {

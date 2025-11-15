@@ -251,7 +251,7 @@ int main(void)
 		LOG_ERR("Write payload, err %d", err);
 		return 0;
 	}
-5)
+
 	LOG_INF("Setting up for packet receiption");
 
 	err = esb_start_rx();
