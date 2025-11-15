@@ -274,9 +274,13 @@ int main(void)
 				LOG_ERR("Payload write failed, err %d", err);
 			} else {
 				LOG_DBG("esb_write_payload enqueued OK");
+				//  err = esb_start_tx();
+				// if (err) {
+				// 	LOG_ERR("esb_start_tx failed, err %d", err);
+				// }
 			}
 			//tx_payload.data[1]++;
 		}
-		k_sleep(K_MSEC(100));
+		k_sleep(K_MSEC(1));
 	}
 }

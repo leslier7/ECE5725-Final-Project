@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2018 Nordic Semiconductor ASA
  *
+ * Modified by Robbie Leslie
+ * 
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 #include <zephyr/device.h>
@@ -25,6 +27,8 @@
 #if defined(NRF54LM20A_ENGA_XXAA)
 #include <hal/nrf_clock.h>
 #endif /* defined(NRF54LM20A_ENGA_XXAA) */
+
+#include "imu.h"
 
 LOG_MODULE_REGISTER(esb_prx, CONFIG_ESB_PRX_APP_LOG_LEVEL);
 
@@ -62,6 +66,23 @@ void event_handler(struct esb_evt const *event)
 			// 	rx_payload.data[3], rx_payload.data[4],
 			// 	rx_payload.data[5], rx_payload.data[6],
 			// 	rx_payload.data[7]);
+			//LOG_DBG("Packet received, len %d", rx_payload.length);
+			//LOG_HEXDUMP_DBG(rx_payload.data, rx_payload.length, "rx payload");
+
+			if (rx_payload.length == (int)sizeof(IMU_Data)) {
+            IMU_Data imu;
+            memcpy(&imu, rx_payload.data, sizeof(imu));
+
+			//TODO send data in binary instead of printing it
+            printf("\nAccel (m/s^2): x=%lf y=%lf z=%lf", imu.accel.x, imu.accel.y, imu.accel.z);
+            printf("\nGyro (dps): x=%lf y=%lf z=%lf", imu.gyro.x, imu.gyro.y, imu.gyro.z);
+
+
+            leds_update(rx_payload.data[1]);
+        } else {
+            LOG_WRN("Unexpected payload length %d (expected %zu)",
+                    rx_payload.length, sizeof(IMU_Data));
+        }
 
 			leds_update(rx_payload.data[1]);
 		} else {
@@ -168,7 +189,7 @@ int esb_initialize(void)
 	config.protocol = ESB_PROTOCOL_ESB_DPL;
 	config.bitrate = ESB_BITRATE_2MBPS;
 	config.mode = ESB_MODE_PRX;
-	config.payload_length = 192;
+	config.payload_length = 48;
 	config.event_handler = event_handler;
 	config.selective_auto_ack = true;
 	if (IS_ENABLED(CONFIG_ESB_FAST_SWITCHING)) {
@@ -230,7 +251,7 @@ int main(void)
 		LOG_ERR("Write payload, err %d", err);
 		return 0;
 	}
-
+5)
 	LOG_INF("Setting up for packet receiption");
 
 	err = esb_start_rx();
