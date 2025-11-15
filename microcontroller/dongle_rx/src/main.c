@@ -69,8 +69,8 @@ void event_handler(struct esb_evt const *event)
 			//LOG_DBG("Packet received, len %d", rx_payload.length);
 			//LOG_HEXDUMP_DBG(rx_payload.data, rx_payload.length, "rx payload");
 
-			if (rx_payload.length == (int)sizeof(IMU_Data)) {
-            IMU_Data imu;
+			if (rx_payload.length == (int)sizeof(IMU_DataPacked)) {
+            IMU_DataPacked imu;
             memcpy(&imu, rx_payload.data, sizeof(imu));
 
 			//TODO send data in binary instead of printing it

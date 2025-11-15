@@ -157,6 +157,20 @@ IMU_Data get_imu_data(){
     return sensor_data;
 }
 
+IMU_DataPacked get_packed_imu_data(){
+    IMU_DataPacked sensor_data;
+    
+    sensor_data.accel.x = sensor_value_to_float(&accel_x_out);
+    sensor_data.accel.y = sensor_value_to_float(&accel_y_out);
+    sensor_data.accel.z = sensor_value_to_float(&accel_z_out);
+
+    sensor_data.gyro.x = sensor_value_to_float(&gyro_x_out);
+    sensor_data.gyro.y = sensor_value_to_float(&gyro_y_out);
+    sensor_data.gyro.z = sensor_value_to_float(&gyro_z_out);
+
+    return sensor_data;
+}
+
 int old_main(void)
 {
 	int cnt = 0;

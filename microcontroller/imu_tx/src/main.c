@@ -247,24 +247,37 @@ int main(void)
 	tx_payload.noack = false;
 	while (1) {
 		if (ready) {
-			IMU_Data sensor_data = get_imu_data();
+			IMU_DataPacked sensor_data = get_packed_imu_data();
 
 			
 			tx_payload.pipe = 0;
 			// tx_payload.length = 192;
 			// tx_payload.noack = 0;
 
-			double vals[6] = {
-				sensor_data.accel.x,
-				sensor_data.accel.y,
-				sensor_data.accel.z,
-				sensor_data.gyro.x,
-				sensor_data.gyro.y,
-				sensor_data.gyro.z
-			};
-			tx_payload.length = 6 * sizeof(double); // 24
+			// double vals[6] = {
+			// 	sensor_data.accel.x,
+			// 	sensor_data.accel.y,
+			// 	sensor_data.accel.z,
+			// 	sensor_data.gyro.x,
+			// 	sensor_data.gyro.y,
+			// 	sensor_data.gyro.z
+			// };
+			// tx_payload.length = 6 * sizeof(double); // 24
+			// memset(tx_payload.data, 0, sizeof(tx_payload.data));
+            // memcpy(tx_payload.data, vals, tx_payload.length);
+
+			// packed.accel.x = sensor_data.accel.x;
+			// packed.accel.y = sensor_data.accel.y;
+			// packed.accel.z = sensor_data.accel.z;
+			// packed.gyro.x  = sensor_data.gyro.x;
+			// packed.gyro.y  = sensor_data.gyro.y;
+			// packed.gyro.z  = sensor_data.gyro.z;
+
+			_Static_assert(sizeof(IMU_DataPacked) == 6 * sizeof(float), "IMU_DataPacked size unexpected");
+
+			tx_payload.length = sizeof(sensor_data);
 			memset(tx_payload.data, 0, sizeof(tx_payload.data));
-            memcpy(tx_payload.data, vals, tx_payload.length);
+			memcpy(tx_payload.data, &sensor_data, tx_payload.length);
 			
 			LOG_HEXDUMP_DBG(tx_payload.data, tx_payload.length, "tx payload");
 
