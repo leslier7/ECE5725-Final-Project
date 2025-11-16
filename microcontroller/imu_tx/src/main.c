@@ -21,6 +21,15 @@
 
 #include "imu.h"
 
+// fallback default if not provided by CMake 
+#ifndef TRANSMITTER_PIPE
+#define TRANSMITTER_PIPE 1
+#endif
+
+/* compile-time sanity check */
+_Static_assert(TRANSMITTER_PIPE >= 0 && TRANSMITTER_PIPE <= 7,
+               "TRANSMITTER_PIPE must be between 0 and 7");
+
 #if defined(CONFIG_CLOCK_CONTROL_NRF2)
 #include <hal/nrf_lrcconf.h>
 #endif
@@ -171,7 +180,7 @@ int esb_initialize(void)
 	 */
 	uint8_t base_addr_0[4] = {0xE7, 0xE7, 0xE7, 0xE7};
 	uint8_t base_addr_1[4] = {0xC2, 0xC2, 0xC2, 0xC2};
-	uint8_t addr_prefix[8] = {0xE7, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8};
+	uint8_t addr_prefix[8] = {0xE7, 0xA1, 0xB1, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8};
 
 	struct esb_config config = ESB_DEFAULT_CONFIG;
 
@@ -217,6 +226,7 @@ int main(void)
 	int err;
 
 	LOG_INF("Enhanced ShockBurst ptx sample");
+	LOG_INF("Using TRANSMITTER_PIPE=%d", TRANSMITTER_PIPE);
 
 	err = clocks_start();
 	if (err) {
@@ -250,7 +260,7 @@ int main(void)
 			IMU_DataPacked sensor_data = get_packed_imu_data();
 
 			
-			tx_payload.pipe = 0;
+			tx_payload.pipe = TRANSMITTER_PIPE;
 			// tx_payload.length = 192;
 			// tx_payload.noack = 0;
 

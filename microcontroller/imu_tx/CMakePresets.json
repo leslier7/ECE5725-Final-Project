@@ -1,0 +1,29 @@
+{
+    "version": 2,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20
+    },
+    "configurePresets": [
+        {
+            "name": "build_right",
+            "displayName": "Build for XIAO BLE Sense",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build_right",
+            "cacheVariables": {
+                "BOARD": "xiao_ble/nrf52840/sense",
+                "TRANSMITTER_PIPE": "1"
+            }
+        },
+        {
+            "name": "build_left",
+            "displayName": "Build for XIAO BLE Sense",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build_left",
+            "cacheVariables": {
+                "BOARD": "xiao_ble/nrf52840/sense",
+                "TRANSMITTER_PIPE": "2"
+            }
+        }
+    ]
+}

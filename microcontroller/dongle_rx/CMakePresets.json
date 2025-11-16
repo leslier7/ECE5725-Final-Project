@@ -1,0 +1,27 @@
+{
+    "version": 2,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20
+    },
+    "configurePresets": [
+        {
+            "name": "build_dongle",
+            "displayName": "Build for nRF52840 Dongle nRF52840",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build_dongle",
+            "cacheVariables": {
+                "BOARD": "nrf52840dongle/nrf52840"
+            }
+        },
+        {
+            "name": "build_dk",
+            "displayName": "Build for nRF52840 DK nRF52840",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build_dk",
+            "cacheVariables": {
+                "BOARD": "nrf52840dk/nrf52840"
+            }
+        }
+    ]
+}
