@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'pi/c-game/src/**'                 # was: 'src/**'
+      - 'pi/c-game/**'                 # updated from 'src/**'
       - '.github/workflows/linux.yml'
   release:
     types: [published]
@@ -15,16 +15,16 @@ permissions:
 jobs:
   build:
     permissions:
-      contents: write
+      contents: write       # for actions/upload-release-asset to upload release asset
     runs-on: ubuntu-latest
     
     env:
       PROJECT_NAME: ${{ github.event.repository.name }}
-      # code now lives in {toplevel}/pi/c-game/src
+      # game lives in {repo}/pi/c-game/src
       PROJECT_BUILD_PATH: ${{ github.event.repository.name }}/pi/c-game/src
       PROJECT_RELEASE_PATH: ${{ github.event.repository.name }}_dev_linux_x64
       PROJECT_CUSTOM_FLAGS: ""
-      # this is joined with $PROJECT_NAME later -> <repo>/pi/c-game/src/resources
+      # resources at {repo}/pi/c-game/src/resources
       PROJECT_RESOURCES_PATH: pi/c-game/src/resources
     
     steps:
@@ -37,6 +37,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: raysan5/raylib
+        # put raylib *inside* the repo dir so ../../../raylib/src works
         path: ${{ env.PROJECT_NAME }}/raylib
         
     - name: Setup Release Paths
@@ -48,22 +49,23 @@ jobs:
     - name: Setup Environment
       run: | 
         sudo apt-get update -qq
-        sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libxkbcommon-dev
+        sudo apt-get install -y --no-install-recommends \
+          libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev \
+          libxinerama-dev libxi-dev libxext-dev libxfixes-dev \
+          libwayland-dev libxkbcommon-dev
         mkdir ${{ env.PROJECT_RELEASE_PATH }}
         ls
       shell: bash
         
     - name: Build raylib Library
       run: |
-        cd raylib/src
+        cd ${{ env.PROJECT_NAME }}/raylib/src
         gcc --version
         make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE RAYLIB_LIBTYPE=STATIC RAYLIB_PROJECT_RELEASE_PATH=. -B
 
     - name: Build Product
       run: |
-        # was: cd ${{ env.PROJECT_NAME }}/src
         cd ${{ env.PROJECT_NAME }}/pi/c-game/src
-        # now raylib is 3 levels up instead of 2
         make PLATFORM=PLATFORM_DESKTOP \
              BUILD_MODE=RELEASE \
              PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} \
