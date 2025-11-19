@@ -20,6 +20,7 @@
 #include <dk_buttons_and_leds.h>
 
 #include "imu.h"
+#include "button.h"
 
 // fallback default if not provided by CMake 
 #ifndef TRANSMITTER_PIPE
@@ -70,7 +71,7 @@ void event_handler(struct esb_evt const *event)
 
 	switch (event->evt_id) {
 	case ESB_EVENT_TX_SUCCESS:
-		LOG_DBG("TX SUCCESS EVENT");
+		//LOG_DBG("TX SUCCESS EVENT");
 		leds_update(tx_payload.data[1]);
 		break;
 	case ESB_EVENT_TX_FAILED:
@@ -240,6 +241,12 @@ int main(void)
 		return 0;
 	}
 
+	err = button_init();
+    if (err) {
+        LOG_ERR("Button init failed, err %d", err);
+        return 0;
+    }
+
 	err = imu_init();
 	if (err) {
 		LOG_ERR("IMU initialization failed, err %d", err);
@@ -286,11 +293,21 @@ int main(void)
 
 			_Static_assert(sizeof(IMU_DataPacked) == 6 * sizeof(float), "IMU_DataPacked size unexpected");
 
-			tx_payload.length = sizeof(sensor_data);
-			memset(tx_payload.data, 0, sizeof(tx_payload.data));
-			memcpy(tx_payload.data, &sensor_data, tx_payload.length);
+			tx_payload.data[0] = button_pressed_flag ? 1 : 0;
+			if(button_pressed_flag){
+				printf("\nButton pressed");
+			}
+            // Optionally clear the flag after sampling:
+            button_pressed_flag = false;
+
+			size_t imu_bytes = sizeof(sensor_data);
+            if (imu_bytes + 1 > sizeof(tx_payload.data)) {
+                imu_bytes = sizeof(tx_payload.data) - 1;
+            }
+            memcpy(&tx_payload.data[1], &sensor_data, imu_bytes);
+            tx_payload.length = 1 + imu_bytes;
 			
-			LOG_HEXDUMP_DBG(tx_payload.data, tx_payload.length, "tx payload");
+			//LOG_HEXDUMP_DBG(tx_payload.data, tx_payload.length, "tx payload");
 
 			ready = false;
 			esb_flush_tx();
@@ -300,7 +317,7 @@ int main(void)
 			if (err) {
 				LOG_ERR("Payload write failed, err %d", err);
 			} else {
-				LOG_DBG("esb_write_payload enqueued OK");
+				//LOG_DBG("esb_write_payload enqueued OK");
 				//  err = esb_start_tx();
 				// if (err) {
 				// 	LOG_ERR("esb_start_tx failed, err %d", err);

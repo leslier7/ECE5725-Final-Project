@@ -12,6 +12,7 @@
             "binaryDir": "${sourceDir}/build_right",
             "cacheVariables": {
                 "BOARD": "xiao_ble/nrf52840/sense",
+                "EXTRA_DTC_OVERLAY_FILE": "boards/xiao_overlay.overlay",
                 "TRANSMITTER_PIPE": "1"
             }
         },
@@ -22,6 +23,7 @@
             "binaryDir": "${sourceDir}/build_left",
             "cacheVariables": {
                 "BOARD": "xiao_ble/nrf52840/sense",
+                "EXTRA_DTC_OVERLAY_FILE": "boards/xiao_overlay.overlay",
                 "TRANSMITTER_PIPE": "2"
             }
         }

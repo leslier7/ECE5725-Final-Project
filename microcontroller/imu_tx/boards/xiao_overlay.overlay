@@ -1,0 +1,19 @@
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+    buttons {
+        compatible = "gpio-keys";
+
+        debounce-interval-ms = <100>;
+
+        button_0: button_0 {
+            gpios = <&gpio0 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+            label = "User Button";
+            zephyr,code = <INPUT_KEY_0>;
+        };
+    };
+
+    aliases {
+        sw0 = &button_0;
+    };
+};
