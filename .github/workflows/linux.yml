@@ -29,8 +29,6 @@ jobs:
     steps:
     - name: Checkout this repo
       uses: actions/checkout@v4
-      with:
-        path: ${{ env.PROJECT_DIR }}          # checkout the repo into the subfolder
       
     - name: Checkout raylib repo
       uses: actions/checkout@v4
