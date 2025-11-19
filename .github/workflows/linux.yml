@@ -22,7 +22,8 @@ jobs:
       PROJECT_NAME: ${{ github.event.repository.name }}
       # game lives in {repo}/pi/c-game/src
       PROJECT_BUILD_PATH: ${{ github.event.repository.name }}/pi/c-game/src
-      PROJECT_RELEASE_PATH: ${{ github.event.repository.name }}_dev_linux_x64
+      # now generic, since we'll put both x86_64 and arm64 in here
+      PROJECT_RELEASE_PATH: ${{ github.event.repository.name }}_dev_linux
       PROJECT_CUSTOM_FLAGS: ""
       # resources at {repo}/pi/c-game/src/resources
       PROJECT_RESOURCES_PATH: pi/c-game/src/resources
@@ -40,42 +41,74 @@ jobs:
         # put raylib *inside* the repo dir so ../../../raylib/src works
         path: ${{ env.PROJECT_NAME }}/raylib
         
-    - name: Setup Release Paths
+    - name: Setup Release Paths (for GitHub Release event)
       run: |
-        echo "PROJECT_RELEASE_PATH=${{ env.PROJECT_NAME }}_v${{ github.event.release.tag_name }}_linux_x64" >> $GITHUB_ENV
+        echo "PROJECT_RELEASE_PATH=${{ env.PROJECT_NAME }}_v${{ github.event.release.tag_name }}_linux" >> $GITHUB_ENV
       shell: bash
       if: github.event_name == 'release' && github.event.action == 'published'
     
     - name: Setup Environment
       run: | 
+        sudo dpkg --add-architecture arm64
         sudo apt-get update -qq
         sudo apt-get install -y --no-install-recommends \
           libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev \
           libxinerama-dev libxi-dev libxext-dev libxfixes-dev \
-          libwayland-dev libxkbcommon-dev
+          libwayland-dev libxkbcommon-dev \
+          gcc-aarch64-linux-gnu \
+          libglfw3-dev:arm64 libx11-dev:arm64 libxcursor-dev:arm64 libxrandr-dev:arm64 \
+          libxinerama-dev:arm64 libxi-dev:arm64 libxext-dev:arm64 libxfixes-dev:arm64 \
+          libwayland-dev:arm64 libxkbcommon-dev:arm64
         mkdir ${{ env.PROJECT_RELEASE_PATH }}
         ls
       shell: bash
         
-    - name: Build raylib Library
+    - name: Build raylib Library (native x86_64)
       run: |
         cd ${{ env.PROJECT_NAME }}/raylib/src
         gcc --version
+        make clean
         make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE RAYLIB_LIBTYPE=STATIC RAYLIB_PROJECT_RELEASE_PATH=. -B
 
-    - name: Build Product
+    - name: Build Product (native x86_64)
       run: |
         cd ${{ env.PROJECT_NAME }}/pi/c-game/src
+        make clean
         make PLATFORM=PLATFORM_DESKTOP \
              BUILD_MODE=RELEASE \
-             PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} \
+             PROJECT_CUSTOM_FLAGS="${{ env.PROJECT_CUSTOM_FLAGS }}" \
              PROJECT_BUILD_PATH=. \
              RAYLIB_SRC_PATH=../../../raylib/src
+        # keep canonical name for native binary
+        mv -v ${{ env.PROJECT_NAME }} ${{ env.PROJECT_NAME }}_x86_64
+
+    - name: Build raylib Library (ARM64)
+      run: |
+        cd ${{ env.PROJECT_NAME }}/raylib/src
+        make clean
+        make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE RAYLIB_LIBTYPE=STATIC \
+             RAYLIB_PROJECT_RELEASE_PATH=. \
+             CC=aarch64-linux-gnu-gcc AR=aarch64-linux-gnu-ar -B
+
+    - name: Build Product (ARM64)
+      run: |
+        cd ${{ env.PROJECT_NAME }}/pi/c-game/src
+        make clean
+        make PLATFORM=PLATFORM_DESKTOP \
+             BUILD_MODE=RELEASE \
+             PROJECT_CUSTOM_FLAGS="${{ env.PROJECT_CUSTOM_FLAGS }}" \
+             PROJECT_BUILD_PATH=. \
+             RAYLIB_SRC_PATH=../../../raylib/src \
+             CC=aarch64-linux-gnu-gcc
+        mv -v ${{ env.PROJECT_NAME }} ${{ env.PROJECT_NAME }}_arm64
 
     - name: Generate Artifacts
       run: |
         ls ${{ env.PROJECT_BUILD_PATH }}
-        cp ${{ env.PROJECT_BUILD_PATH }}/${{ env.PROJECT_NAME }} ${{ env.PROJECT_RELEASE_PATH }}
+        # copy both binaries into the release dir
+        cp ${{ env.PROJECT_BUILD_PATH }}/${{ env.PROJECT_NAME }}_x86_64 ${{ env.PROJECT_RELEASE_PATH }}
+        cp ${{ env.PROJECT_BUILD_PATH }}/${{ env.PROJECT_NAME }}_arm64 ${{ env.PROJECT_RELEASE_PATH }}
+        # copy resources + docs
         cp -r ${{ env.PROJECT_NAME }}/${{ env.PROJECT_RESOURCES_PATH }} ${{ env.PROJECT_RELEASE_PATH }}
         cp ${{ env.PROJECT_NAME }}/pi/c-game/README.md ${{ env.PROJECT_RELEASE_PATH }}
         cp ${{ env.PROJECT_NAME }}/pi/c-game/LICENSE ${{ env.PROJECT_RELEASE_PATH }}
