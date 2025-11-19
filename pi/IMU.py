@@ -91,7 +91,7 @@ def calibrate_gyro(dongle):
 
         # handle_message(line)
 
-        pipe, imu, seq = dongle.read_frame()
+        pipe, button, imu, seq = dongle.read_frame()
 
         now = time.time()
         if now - start_time < calibration_time:
@@ -133,7 +133,7 @@ def main():
     bias = calibrate_gyro(dr)
 
     while True:
-        pipe, imu, seq = dr.read_frame()
+        pipe, button, imu, seq = dr.read_frame()
         print(f"Accel: x:{imu.accel.x:8.3f}, y:{imu.accel.y:8.3f}, z:{imu.accel.z:8.3f}")
 
         gyro_c = Angle(imu.gyro.x - bias.x, imu.gyro.y - bias.y, imu.gyro.z - bias.z)

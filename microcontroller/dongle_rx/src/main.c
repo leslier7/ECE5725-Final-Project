@@ -36,6 +36,7 @@ LOG_MODULE_REGISTER(esb_prx, CONFIG_ESB_PRX_APP_LOG_LEVEL);
 
 typedef struct {
     uint8_t pipe;
+    uint8_t button;
     IMU_DataPacked imu;
 } imu_frame_t;
 
@@ -93,36 +94,25 @@ void event_handler(struct esb_evt const *event)
 				default:
 					LOG_INF("Received from pipe %d", rx_payload.pipe);
 			}
-			if (rx_payload.length == (int)sizeof(IMU_DataPacked)) {
-            // IMU_DataPacked imu;
-            // memcpy(&imu, rx_payload.data, sizeof(imu));
+			if (rx_payload.length >= (int)(1 + sizeof(IMU_DataPacked))) {
+                imu_frame_t frame;
+                frame.pipe = rx_payload.pipe;
+                frame.button = rx_payload.data[0];
+				// if(frame.button != 0){
+				// 	dk_set_leds(DK_LED1_MSK | DK_LED2_MSK | DK_LED3_MSK | DK_LED4_MSK);
+				// } else {
+				// 	dk_set_leds(0);
+				// }
+                memcpy(&frame.imu, &rx_payload.data[1], sizeof(IMU_DataPacked));
+                (void)k_msgq_put(&imu_msgq, &frame, K_NO_WAIT);
 
-			//TODO send data in binary instead of printing it
-            // printf("\nDevice: %d, Accel (m/s^2): x=%f y=%f z=%f", rx_payload.pipe, imu.accel.x, imu.accel.y, imu.accel.z);
-            // printf("\nDevice: %d, Gyro (dps): x=%f y=%f z=%f", rx_payload.pipe, imu.gyro.x, imu.gyro.y, imu.gyro.z);
+                leds_update(rx_payload.data[1]);
+            } else {
+                LOG_WRN("Unexpected payload length %d (expected >= %zu)",
+                        rx_payload.length, 1 + sizeof(IMU_DataPacked));
+            }
 
-			// uint8_t msg[4 + sizeof(IMU_DataPacked)];
-			// msg[0] = 0x77;
-			// msg[1] = 0x55;
-			// msg[2] = 0xAA;
-			// msg[3] = rx_payload.pipe;
-			// memcpy(&msg[4], rx_payload.data, sizeof(IMU_DataPacked));
-
-			imu_frame_t frame;
-            frame.pipe = rx_payload.pipe;
-            memcpy(&frame.imu, rx_payload.data, sizeof(IMU_DataPacked));
-			(void)k_msgq_put(&imu_msgq, &frame, K_NO_WAIT);
-				
-			// fwrite(msg, 1, sizeof(msg), stdout);
-			// fflush(stdout); // make sure it actually goes out
-
-            leds_update(rx_payload.data[1]);
-			} else {
-				LOG_WRN("Unexpected payload length %d (expected %zu)",
-						rx_payload.length, sizeof(IMU_Data));
-			}
-
-				leds_update(rx_payload.data[1]);
+				//leds_update(rx_payload.data[1]);
 		} else {
 			LOG_ERR("Error while reading rx packet");
 		}
@@ -304,39 +294,40 @@ int main(void)
 	while(1){
 		k_msgq_get(&imu_msgq, &frame, K_FOREVER);
 
-		// Build payload: pipe + seq + imu
-		uint8_t payload[1 + 2 + sizeof(IMU_DataPacked)];
-		size_t idx = 0;
-		payload[idx++] = frame.pipe;
+        // Build payload: pipe + button + seq + imu
+        uint8_t payload[1 + 1 + 2 + sizeof(IMU_DataPacked)];
+        size_t idx = 0;
+        payload[idx++] = frame.pipe;
+        payload[idx++] = frame.button;    /* include button */
 
-		// seq as little-endian u16
-		payload[idx++] = (uint8_t)(seq & 0xFF);
-		payload[idx++] = (uint8_t)((seq >> 8) & 0xFF);
+        // seq as little-endian u16
+        payload[idx++] = (uint8_t)(seq & 0xFF);
+        payload[idx++] = (uint8_t)((seq >> 8) & 0xFF);
 
-		memcpy(&payload[idx], &frame.imu, sizeof(IMU_DataPacked));
-		idx += sizeof(IMU_DataPacked);
+        memcpy(&payload[idx], &frame.imu, sizeof(IMU_DataPacked));
+        idx += sizeof(IMU_DataPacked);
 
-		// CRC over payload
-		uint16_t crc = crc16_ccitt(payload, idx);
+        // CRC over payload
+        uint16_t crc = crc16_ccitt(payload, idx);
 
-		// Now build final wire frame: header + payload + crc
-		uint8_t msg[3 + sizeof(payload) + 2];
-		size_t midx = 0;
+        // Now build final wire frame: header + payload + crc
+        uint8_t msg[3 + sizeof(payload) + 2];
+        size_t midx = 0;
 
-		msg[midx++] = 0x77;
-		msg[midx++] = 0x55;
-		msg[midx++] = 0xAA;
+        msg[midx++] = 0x77;
+        msg[midx++] = 0x55;
+        msg[midx++] = 0xAA;
 
-		memcpy(&msg[midx], payload, idx);
-		midx += idx;
+        memcpy(&msg[midx], payload, idx);
+        midx += idx;
 
-		msg[midx++] = (uint8_t)(crc & 0xFF);
-		msg[midx++] = (uint8_t)((crc >> 8) & 0xFF);
+        msg[midx++] = (uint8_t)(crc & 0xFF);
+        msg[midx++] = (uint8_t)((crc >> 8) & 0xFF);
 
-		fwrite(msg, 1, midx, stdout);
-		fflush(stdout);
+        fwrite(msg, 1, midx, stdout);
+        fflush(stdout);
 
-		seq++;  // increment sequence number each frame
+        seq++;
 	}
 
 	/* return to idle thread */
