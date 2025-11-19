@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'pi/c-game/src/**'
+      - 'pi/c-game/src/**'                         # was: 'src/**'
       - '.github/workflows/webassembly.yml'
   release:
     types: [published]
@@ -19,15 +19,16 @@ jobs:
     runs-on: windows-latest
     
     env:
-      PROJECT_NAME: c-game
-      PROJECT_DIR: pi/c-game
-      PROJECT_BUILD_PATH: pi/c-game\\src
-      PROJECT_RELEASE_PATH: c-game_dev_wasm
-      PROJECT_RESOURCES_PATH: resources
+      PROJECT_NAME: ${{ github.event.repository.name }}
+      # code now lives in {toplevel}\pi\c-game\src
+      PROJECT_BUILD_PATH: ${{ github.event.repository.name }}\\pi\\c-game\\src
+      PROJECT_RELEASE_PATH: ${{ github.event.repository.name }}_dev_wasm
       
     steps:
     - name: Checkout this repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@master
+      with:
+        path: ${{ env.PROJECT_NAME }}
       
     - name: Checkout raylib repo
       uses: actions/checkout@v4
@@ -60,8 +61,8 @@ jobs:
 
     - name: Build Product
       run: |
-        cd ${{ env.PROJECT_DIR }}/src
-        make PLATFORM=PLATFORM_WEB BUILD_MODE=RELEASE EMSDK_PATH="D:/a/${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}/emsdk-cache/emsdk-main" PROJECT_BUILD_PATH=. RAYLIB_SRC_PATH=../../raylib/src -B
+        cd ${{ env.PROJECT_NAME }}/pi/c-game/src
+        make PLATFORM=PLATFORM_WEB BUILD_MODE=RELEASE EMSDK_PATH="D:/a/${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}/emsdk-cache/emsdk-main" PROJECT_BUILD_PATH=. RAYLIB_SRC_PATH=../../../raylib/src -B
   
     - name: Generate Artifacts
       run: |
@@ -70,8 +71,8 @@ jobs:
         copy /Y ${{ env.PROJECT_BUILD_PATH }}\${{ env.PROJECT_NAME }}.data ${{ env.PROJECT_RELEASE_PATH }}\${{ env.PROJECT_NAME }}.data
         copy /Y ${{ env.PROJECT_BUILD_PATH }}\${{ env.PROJECT_NAME }}.js ${{ env.PROJECT_RELEASE_PATH }}\${{ env.PROJECT_NAME }}.js
         copy /Y ${{ env.PROJECT_BUILD_PATH }}\${{ env.PROJECT_NAME }}.html ${{ env.PROJECT_RELEASE_PATH }}\index.html
-        copy /Y ${{ env.PROJECT_DIR }}\README.md ${{ env.PROJECT_RELEASE_PATH }}\README.md
-        copy /Y ${{ env.PROJECT_DIR }}\LICENSE ${{ env.PROJECT_RELEASE_PATH }}\LICENSE
+        copy /Y ${{ env.PROJECT_NAME }}\README.md ${{ env.PROJECT_RELEASE_PATH }}\README.md
+        copy /Y ${{ env.PROJECT_NAME }}\LICENSE ${{ env.PROJECT_RELEASE_PATH }}\LICENSE
         dir ${{ env.PROJECT_RELEASE_PATH }}
         7z a -tzip -r .\${{ env.PROJECT_RELEASE_PATH }}.zip .\${{ env.PROJECT_RELEASE_PATH }}\*
       shell: cmd

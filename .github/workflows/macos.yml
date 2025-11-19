@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'pi/c-game/src/**'
+      - 'pi/c-game/src/**'                 # was: 'src/**'
       - '.github/workflows/macos.yml'
   release:
     types: [published]
@@ -19,16 +19,19 @@ jobs:
     runs-on: macos-latest
     
     env:
-      PROJECT_NAME: c-game
-      PROJECT_DIR: pi/c-game
-      PROJECT_BUILD_PATH: pi/c-game/src
-      PROJECT_RELEASE_PATH: c-game_dev_macos
+      PROJECT_NAME: ${{ github.event.repository.name }}
+      # code now lives in {toplevel}/pi/c-game/src
+      PROJECT_BUILD_PATH: ${{ github.event.repository.name }}/pi/c-game/src
+      PROJECT_RELEASE_PATH: ${{ github.event.repository.name }}_dev_macos
       PROJECT_CUSTOM_FLAGS: ""
-      PROJECT_RESOURCES_PATH: src/resources
+      # joined later as <repo>/<this path>
+      PROJECT_RESOURCES_PATH: pi/c-game/src/resources
     
     steps:
     - name: Checkout this repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@master
+      with:
+        path: ${{ env.PROJECT_NAME }}
       
     - name: Checkout raylib repo
       uses: actions/checkout@v4
@@ -69,9 +72,9 @@ jobs:
         RAYLIB_VERSION=`ggrep -Po 'RAYLIB_VERSION\s*=\s\K(.*)' Makefile`
         
         # Build raylib x86_64 static
-        make PLATFORM=PLATFORM_DESKTOP RAYLIB_LIBTYPE=STATIC CUSTOM_CFLAGS="-target x86_64-apple-macos10.12 -DGL_SILENCE_DEPRECATION"
-        mv -v -f libraylib.a libraylib_x86_64.a
-        make clean
+        #make PLATFORM=PLATFORM_DESKTOP RAYLIB_LIBTYPE=STATIC CUSTOM_CFLAGS="-target x86_64-apple-macos10.12 -DGL_SILENCE_DEPRECATION"
+        #mv -v -f libraylib.a libraylib_x86_64.a
+        #make clean
         
         # Build raylib arm64 static
         make PLATFORM=PLATFORM_DESKTOP RAYLIB_LIBTYPE=STATIC CUSTOM_CFLAGS="-target arm64-apple-macos11 -DGL_SILENCE_DEPRECATION" -B
@@ -85,34 +88,47 @@ jobs:
 
     - name: Build Product
       run: |
-        cd ${{ env.PROJECT_DIR }}/src
+        # was: cd ${{ env.PROJECT_NAME }}/src
+        cd ${{ env.PROJECT_NAME }}/pi/c-game/src
         
         # Build project x86_64 binary
-        # TODO: Link with x86_64 raylib library: libraylib_x86_64.a
-        make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} PROJECT_BUILD_PATH=. RAYLIB_SRC_PATH=../../raylib/src PROJECT_CUSTOM_FLAGS="-target x86_64-apple-macos10.12"
+        # NOTE: RAYLIB_SRC_PATH is now three levels up instead of two
+        make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE \
+             PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} \
+             PROJECT_BUILD_PATH=. \
+             RAYLIB_SRC_PATH=../../../raylib/src \
+             PROJECT_CUSTOM_FLAGS="-target x86_64-apple-macos10.12"
         mv -v -f ${{ env.PROJECT_NAME }} ${{ env.PROJECT_NAME }}_x86_64
         make clean
         
         # Build project arm64 binary
-        # TODO: Link with arm64 raylib library: libraylib_arm.a
-        make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} PROJECT_BUILD_PATH=. RAYLIB_SRC_PATH=../../raylib/src PROJECT_CUSTOM_FLAGS="-target arm64-apple-macos11"
+        make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE \
+             PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} \
+             PROJECT_BUILD_PATH=. \
+             RAYLIB_SRC_PATH=../../../raylib/src \
+             PROJECT_CUSTOM_FLAGS="-target arm64-apple-macos11"
         mv -v -f ${{ env.PROJECT_NAME }} ${{ env.PROJECT_NAME }}_arm64
         make clean
         
         # Join x86_64 and arm64 binaries
         lipo -create -output ${{ env.PROJECT_NAME }} ${{ env.PROJECT_NAME }}_x86_64 ${{ env.PROJECT_NAME }}_arm64
         lipo ${{ env.PROJECT_NAME }} -detailed_info
-        cd ..
+        cd ../..
 
     - name: Generate Artifacts
       run: |
         ls ${{ env.PROJECT_BUILD_PATH }}
         cp ${{ env.PROJECT_BUILD_PATH }}/${{ env.PROJECT_NAME }} ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_NAME }}.app/Contents/MacOS
-        cp ${{ env.PROJECT_DIR }}/src/${{ env.PROJECT_NAME }}.icns ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_NAME }}.app/Contents/Resources
-        cp ${{ env.PROJECT_DIR }}/src/Info.plist ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_NAME }}.app/Contents
-        cp -r ${{ env.PROJECT_DIR }}/${{ env.PROJECT_RESOURCES_PATH }} ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_NAME }}.app/Contents
-        cp ${{ env.PROJECT_DIR }}/README.md ${{ env.PROJECT_RELEASE_PATH }}
-        cp ${{ env.PROJECT_DIR }}/LICENSE ${{ env.PROJECT_RELEASE_PATH }}
+
+        # icon + plist now in pi/c-game/src
+        cp ${{ env.PROJECT_NAME }}/pi/c-game/src/${{ env.PROJECT_NAME }}.icns ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_NAME }}.app/Contents/Resources
+        cp ${{ env.PROJECT_NAME }}/pi/c-game/src/Info.plist ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_NAME }}.app/Contents
+
+        # resources now under pi/c-game/src/resources
+        cp -r ${{ env.PROJECT_NAME }}/${{ env.PROJECT_RESOURCES_PATH }} ${{ env.PROJECT_RELEASE_PATH }}/${{ env.PROJECT_NAME }}.app/Contents
+
+        cp ${{ env.PROJECT_NAME }}/README.md ${{ env.PROJECT_RELEASE_PATH }}
+        cp ${{ env.PROJECT_NAME }}/LICENSE ${{ env.PROJECT_RELEASE_PATH }}
         ls ${{ env.PROJECT_RELEASE_PATH }}
         7z a ./${{ env.PROJECT_RELEASE_PATH }}.zip ./${{ env.PROJECT_RELEASE_PATH }}
 
