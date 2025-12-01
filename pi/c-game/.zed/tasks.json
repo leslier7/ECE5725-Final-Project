@@ -154,7 +154,7 @@
 
   {
     "label": "build & run",
-    "command": "cmake -S . -B build ; $ZED_WORKTREE_ROOT/build/c-raylib-test/c-raylib-test",
+    "command": "cmake --build build && $ZED_WORKTREE_ROOT/build/c-raylib-test/c-raylib-test",
     //"args": [],
     // Env overrides for the command, will be appended to the terminal's environment from the settings.
     "env": { "foo": "bar" },

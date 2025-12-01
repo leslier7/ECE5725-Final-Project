@@ -26,6 +26,8 @@
 #ifndef SCREENS_H
 #define SCREENS_H
 
+#include "dongleparse.h"
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -38,6 +40,11 @@ extern GameScreen currentScreen;
 extern Font font;
 extern Music music;
 extern Sound fxCoin;
+
+extern const int screenWidth;
+extern const int screenHeight;
+
+extern struct dp_packet right_pkt, left_pkt;
 
 #ifdef __cplusplus
 extern "C" {            // Prevents name mangling of functions

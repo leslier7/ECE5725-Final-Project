@@ -54,7 +54,7 @@ void UpdateTitleScreen(void)
     {
         //finishScreen = 1;   // OPTIONS
         finishScreen = 2;   // GAMEPLAY
-        PlaySound(fxCoin);
+        //PlaySound(fxCoin);
     }
 }
 
@@ -65,7 +65,7 @@ void DrawTitleScreen(void)
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), GREEN);
     Vector2 pos = { 20, 10 };
     DrawTextEx(font, "TITLE SCREEN", pos, font.baseSize*3.0f, 4, DARKGREEN);
-    DrawText("SAMPLE TEXT", 120, 220, 20, DARKGREEN);
+    DrawText("Press ENTER or tap for Gameplay", 120, 220, 20, DARKGREEN);
 }
 
 // Title Screen Unload logic

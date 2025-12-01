@@ -14,6 +14,13 @@
 
 #include "raylib.h"
 #include "screens.h"    // NOTE: Declares global (extern) variables and screens functions
+#include "dongleparse.h"
+#include <stdio.h>
+#include <pthread.h>
+
+pthread_t dongle_thread;
+pthread_mutex_t pkt_mutex = PTHREAD_MUTEX_INITIALIZER;
+static volatile int dongle_thread_run = 1;
 
 #if defined(PLATFORM_WEB)
     #include <emscripten/emscripten.h>
@@ -27,12 +34,15 @@ GameScreen currentScreen = LOGO;
 Font font = { 0 };
 Music music = { 0 };
 Sound fxCoin = { 0 };
+const int screenWidth = 800;
+const int screenHeight = 450;
+
+struct dp_packet dongle_pkt;
+struct dp_packet right_pkt, left_pkt;
 
 //----------------------------------------------------------------------------------
 // Global Variables Definition (local to this module)
 //----------------------------------------------------------------------------------
-static const int screenWidth = 800;
-static const int screenHeight = 450;
 
 // Required variables to manage screen transitions (fade-in, fade-out)
 static float transAlpha = 0.0f;
@@ -52,6 +62,33 @@ static void DrawTransition(void);           // Draw transition effect (full-scre
 
 static void UpdateDrawFrame(void);          // Update and draw one frame
 
+// thread function: reads packets and updates right_pkt/left_pkt
+static void *dongle_thread_fn(void *arg)
+{
+    int fd = *(int*)arg;
+    struct dp_packet pkt;
+    while (dongle_thread_run) {
+        int r = dp_read_packet(fd, &pkt);
+        if (r == 1) {
+            //printf("\nseq=%u pipe=%u button=%u", pkt.seq, pkt.pipe, pkt.button);
+            pthread_mutex_lock(&pkt_mutex);
+            switch (pkt.pipe) {
+                case 1: right_pkt = pkt; break;
+                case 2: left_pkt  = pkt; break;
+                default: break;
+            }
+            pthread_mutex_unlock(&pkt_mutex);
+        } else if (r == 0) {
+            // EOF -> stop
+            break;
+        } else {
+            // error -> optionally sleep then retry
+            usleep(10000);
+        }
+    }
+    return NULL;
+}
+
 //----------------------------------------------------------------------------------
 // Program main entry point
 //----------------------------------------------------------------------------------
@@ -61,19 +98,30 @@ int main(void)
     //---------------------------------------------------------
     InitWindow(screenWidth, screenHeight, "test");
 
+    // Set up dongle reader
+    int dongle = dp_open("/dev/ttyACM0", 115200);
+    if (dongle < 0) {
+        printf("\nUnable to connect to dongle");
+        return 1;
+    }
+    
+    
+
     InitAudioDevice();      // Initialize audio device
 
     // Load global data (assets that must be available in all screens, i.e. font)
     font = LoadFont("resources/mecha.png");
     //music = LoadMusicStream("resources/ambient.ogg"); // TODO: Load music
-    fxCoin = LoadSound("resources/coin.wav");
+    //fxCoin = LoadSound("resources/coin.wav");
 
-    SetMusicVolume(music, 1.0f);
-    PlayMusicStream(music);
+    //SetMusicVolume(music, 1.0f);
+    //PlayMusicStream(music);
 
     // Setup and init first screen
-    currentScreen = LOGO;
-    InitLogoScreen();
+    currentScreen = GAMEPLAY;
+    InitGameplayScreen();
+    //InitLogoScreen();
+
 
 #if defined(PLATFORM_WEB)
     emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
@@ -81,10 +129,38 @@ int main(void)
     SetTargetFPS(60);       // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
+     // start reader thread (pass fd by value)
+    int dongle_fd = dongle;
+    if (pthread_create(&dongle_thread, NULL, dongle_thread_fn, &dongle_fd) != 0) {
+        printf("Failed to start dongle thread\n");
+        dp_close(dongle);
+        return 1;
+    }
+
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+        // if(dp_read_packet(dongle, &dongle_pkt) != 1){
+        //     printf("\nDongle read error");
+        // } else {
+        //     //printf("\n");
+        //     printf("\nseq=%u pipe=%u button=%u", dongle_pkt.seq, dongle_pkt.pipe, dongle_pkt.button);
+        //     //printf("\naccel x: %f y: %f z: %f   |   gyro x: %f y: %f z: %f", dongle_pkt.accel.x, dongle_pkt.accel.y, dongle_pkt.accel.z, dongle_pkt.gyro.x, dongle_pkt.gyro.y, dongle_pkt.gyro.z);
+        //     switch(dongle_pkt.pipe){
+        //         case 1:
+        //             right_pkt = dongle_pkt;
+        //             break;
+        //         case 2:
+        //             left_pkt = dongle_pkt;
+        //             break;
+        //         default:
+        //             break;
+        //     }
+        // }
+
+
         UpdateDrawFrame();
+
     }
 #endif
 
@@ -100,6 +176,12 @@ int main(void)
         case ENDING: UnloadEndingScreen(); break;
         default: break;
     }
+
+    // shutdown: stop thread, close fd to unblock read, join
+    dongle_thread_run = 0;
+    dp_close(dongle);               // causes dp_read_packet to return / unblock
+    pthread_join(dongle_thread, NULL);
+    pthread_mutex_destroy(&pkt_mutex);
 
     // Unload global data loaded
     UnloadFont(font);
