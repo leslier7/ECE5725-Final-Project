@@ -39,6 +39,8 @@ const int screenHeight = 450;
 
 struct dp_packet dongle_pkt;
 struct dp_packet right_pkt, left_pkt;
+int right_button_events = 0;
+int left_button_events  = 0;
 
 //----------------------------------------------------------------------------------
 // Global Variables Definition (local to this module)
@@ -71,10 +73,19 @@ static void *dongle_thread_fn(void *arg)
         int r = dp_read_packet(fd, &pkt);
         if (r == 1) {
             //printf("\nseq=%u pipe=%u button=%u", pkt.seq, pkt.pipe, pkt.button);
+            if(pkt.button){
+                printf("\nButton Pressed");
+            }
             pthread_mutex_lock(&pkt_mutex);
             switch (pkt.pipe) {
-                case 1: right_pkt = pkt; break;
-                case 2: left_pkt  = pkt; break;
+                case 1:
+                    right_pkt = pkt;
+                    if (pkt.button) right_button_events++;
+                    break;
+                case 2:
+                    left_pkt = pkt;
+                    if (pkt.button) left_button_events++;
+                    break;
                 default: break;
             }
             pthread_mutex_unlock(&pkt_mutex);
@@ -83,7 +94,7 @@ static void *dongle_thread_fn(void *arg)
             break;
         } else {
             // error -> optionally sleep then retry
-            usleep(10000);
+            //usleep(10000);
         }
     }
     return NULL;

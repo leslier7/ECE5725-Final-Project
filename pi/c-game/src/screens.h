@@ -45,6 +45,8 @@ extern const int screenWidth;
 extern const int screenHeight;
 
 extern struct dp_packet right_pkt, left_pkt;
+extern int right_button_events;
+extern int left_button_events;
 
 #ifdef __cplusplus
 extern "C" {            // Prevents name mangling of functions

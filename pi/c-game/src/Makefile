@@ -38,7 +38,8 @@ PROJECT_SOURCE_FILES  ?= \
     screen_title.c \
     screen_options.c \
     screen_gameplay.c \
-    screen_ending.c
+    screen_ending.c \
+    dongleparse.c
 
 # raylib library variables
 RAYLIB_SRC_PATH       ?= ../../raylib/src
