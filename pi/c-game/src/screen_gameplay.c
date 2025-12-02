@@ -5,6 +5,8 @@
 *   Gameplay Screen Functions Definitions (Init, Update, Draw, Unload)
 *
 *   Copyright (c) 2014-2022 Ramon Santamaria (@raysan5)
+* 
+*   Modified by Robbie Leslie 2025
 *
 *   This software is provided "as-is", without any express or implied warranty. In no event
 *   will the authors be held liable for any damages arising from the use of this software.
@@ -25,9 +27,13 @@
 
 #include "raylib.h"
 #include "screens.h"
+#include "imu_cursor.h"
+#include "fruit.h"
 #include <stdio.h>
 #include <math.h>
 #include <pthread.h>
+#include <time.h>
+#include <stdlib.h>
 
 //----------------------------------------------------------------------------------
 // Module Variables Definition (local)
@@ -35,30 +41,17 @@
 static int framesCounter = 0;
 static int finishScreen = 0;
 
-static Vector2 player_pos;
-static Vector2 imu_vel;
-
-// calibration state
-static Vector2 imu_bias;
-static Vector2 imu_calib_accum;
-static int imu_calib_count;
-static const int IMU_CALIB_SAMPLES = 120; /* ~2s @60Hz */
-static int imu_calibrated;
-
-// Complementary filter for gravity estimation
-static Vector2 gravity_est = {0, 0};
-static int gravity_initialized = 0;
-
-// Low-pass filtered accel (for gravity tracking)
-static Vector2 lp_accel = {0, 0};
-
-// Debug output
-static float debug_ax = 0, debug_ay = 0;
-static float debug_linear_ax = 0, debug_linear_ay = 0;
+// Two cursors
+static IMUCursor right_cursor;
+static IMUCursor left_cursor;
 
 extern pthread_mutex_t pkt_mutex;
 extern struct dp_packet right_pkt;
+extern struct dp_packet left_pkt;  // Add this extern
 int events = 0;
+
+static Fruit testFruit;
+static Fruit testFruit2;
 
 //----------------------------------------------------------------------------------
 // Gameplay Screen Functions Definition
@@ -69,182 +62,96 @@ void InitGameplayScreen(void)
 {
     framesCounter = 0;
     finishScreen = 0;
-    player_pos = (Vector2){(screenWidth/2.0), (screenHeight/2.0)};
-    imu_vel = (Vector2){0, 0};
-
-    /* calibration init */
-    imu_bias = (Vector2){0, 0};
-    imu_calib_accum = (Vector2){0, 0};
-    imu_calib_count = 0;
-    imu_calibrated = 0;
     
-    gravity_est = (Vector2){0, 0};
-    gravity_initialized = 0;
-    lp_accel = (Vector2){0, 0};
+    InitCursor(&right_cursor, BLACK);
+    InitCursor(&left_cursor, BLUE);
     
-    debug_ax = debug_ay = 0;
-    debug_linear_ax = debug_linear_ay = 0;
+    // Debug
+    left_cursor.pos = (Vector2){300, 300};
+    
+    srand(time(NULL));  // Only once!
+    InitFruit(&testFruit);
+    InitFruitDebug(&testFruit2, 0, (Vector2){screenWidth/2, screenHeight/2}, (Vector2){0, 0});
 }
 
-// Gameplay Screen Update logic
 void UpdateGameplayScreen(void)
 {
-    // copy shared packet under lock (avoid data races / torn reads)
-        struct dp_packet pkt_local;
-        pthread_mutex_lock(&pkt_mutex);
-        pkt_local = right_pkt;
-        events = right_button_events;
-        right_button_events = 0; // clear after copying
-        pthread_mutex_unlock(&pkt_mutex);
-        
-        float dt = GetFrameTime();
-        if (dt > 0.1f) dt = 0.016f; // Clamp dt to reasonable value
-        
-        // ----------------- calibration -----------------
-        if (!imu_calibrated) {
-            imu_calib_accum.x += pkt_local.accel.x;
-            imu_calib_accum.y += pkt_local.accel.y;
-            imu_calib_count++;
-            if (imu_calib_count >= IMU_CALIB_SAMPLES) {
-                imu_bias.x = imu_calib_accum.x / (float)IMU_CALIB_SAMPLES;
-                imu_bias.y = imu_calib_accum.y / (float)IMU_CALIB_SAMPLES;
-                
-                printf("Calibration complete: bias = (%.3f, %.3f)\n", imu_bias.x, imu_bias.y);
-                
-                imu_calibrated = 1;
-            }
-            // don't run movement until calibrated
-            return;
-        }
-        
-        // ----------------- parameters (tune these) -----------------
-        const float ACCEL_SCALE         = 2700.0f; // Higher for more responsiveness
-        const float VELOCITY_DAMPING    = 0.9f;   // More damping to stop faster when you stop moving
-        const float VELOCITY_DEADZONE   = 8.0f;    // Stop drift
-        const float ACCEL_DEADZONE      = 0.05f;   // Lower to catch more real motion
-        const float MAX_VEL             = 2500.0f; // Higher max velocity
-        
-        // High-pass filter alpha (closer to 1.0 = more responsive, less gravity removal)
-        const float HP_ALPHA            = 0.995f;    
-        
-        // ----------------- get acceleration and subtract bias -----------------
-        float ax = pkt_local.accel.x - imu_bias.x;
-        float ay = pkt_local.accel.y - imu_bias.y;
-        
-        // Flipping signs for orientation
-        //ax = ax; 
-        ay = -ay;  // Keep Y inverted
-        
-        // Store for debug (raw after bias removal and sign adjustment)
-        debug_ax = ax;
-        debug_ay = ay;
-        
-        // Initialize on first frame after calibration
-        if (!gravity_initialized) {
-            lp_accel.x = ax;
-            lp_accel.y = ay;
-            gravity_initialized = 1;
-            return;
-        }
-        
-        // ----------------- Simple high-pass filter for gravity removal -----------------
-        // This is more responsive than the two-stage approach
-        // lp_accel tracks the "DC" component (gravity + drift)
-        lp_accel.x = HP_ALPHA * lp_accel.x + (1.0f - HP_ALPHA) * ax;
-        lp_accel.y = HP_ALPHA * lp_accel.y + (1.0f - HP_ALPHA) * ay;
-        
-        // Linear acceleration = raw - low-pass (high-pass filter)
-        float linear_ax = ax - lp_accel.x;
-        float linear_ay = ay - lp_accel.y;
-        
-        // Store for debug
-        debug_linear_ax = linear_ax;
-        debug_linear_ay = linear_ay;
-        
-        // Apply deadzone to linear acceleration
-        if (fabsf(linear_ax) < ACCEL_DEADZONE) linear_ax = 0.0f;
-        if (fabsf(linear_ay) < ACCEL_DEADZONE) linear_ay = 0.0f;
-        
-        // ----------------- Integrate acceleration to velocity -----------------
-        imu_vel.x += linear_ax * ACCEL_SCALE * dt;
-        imu_vel.y += linear_ay * ACCEL_SCALE * dt;
-        
-        // Apply damping to prevent unbounded drift
-        imu_vel.x *= VELOCITY_DAMPING;
-        imu_vel.y *= VELOCITY_DAMPING;
-        
-        // Stop very small velocities
-        if (fabsf(imu_vel.x) < VELOCITY_DEADZONE) imu_vel.x = 0.0f;
-        if (fabsf(imu_vel.y) < VELOCITY_DEADZONE) imu_vel.y = 0.0f;
-        
-        // Clamp maximum velocity
-        if (fabsf(imu_vel.x) > MAX_VEL) imu_vel.x = copysignf(MAX_VEL, imu_vel.x);
-        if (fabsf(imu_vel.y) > MAX_VEL) imu_vel.y = copysignf(MAX_VEL, imu_vel.y);
-        
-        // ----------------- Integrate velocity to position -----------------
-        player_pos.x += imu_vel.x * dt;
-        player_pos.y += imu_vel.y * dt;
+    struct dp_packet right_local, left_local;
     
-    // Clamp to screen bounds
-    if (player_pos.x < 0) {
-        player_pos.x = 0;
-        imu_vel.x = 0; // stop at boundary
-    }
-    if (player_pos.y < 0) {
-        player_pos.y = 0;
-        imu_vel.y = 0;
-    }
-    if (player_pos.x > GetScreenWidth()) {
-        player_pos.x = GetScreenWidth();
-        imu_vel.x = 0;
-    }
-    if (player_pos.y > GetScreenHeight()) {
-        player_pos.y = GetScreenHeight();
-        imu_vel.y = 0;
+    pthread_mutex_lock(&pkt_mutex);
+    right_local = right_pkt;
+    left_local = left_pkt;
+    events = right_button_events;
+    right_button_events = 0;
+    pthread_mutex_unlock(&pkt_mutex);
+    
+    float dt = GetFrameTime();
+    if (dt > 0.1f) dt = 0.016f;
+    
+    // Update right cursor
+    if (!UpdateCursorCalibration(&right_cursor, (Vector2){right_local.accel.x, right_local.accel.y})) {
+        UpdateCursorMovement(&right_cursor, (Vector2){right_local.accel.x, right_local.accel.y}, dt);
     }
     
-    // Button event: reset position and velocity
-    if(events > 0){
-        printf("\nResetting player pos");
-        player_pos = (Vector2){(screenWidth/2.0), (screenHeight/2.0)};
-        imu_vel = (Vector2){0, 0};
+    // Update left cursor
+    if (!UpdateCursorCalibration(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y})) {
+        UpdateCursorMovement(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y}, dt);
+    }
+    
+    // Button event: reset both cursors
+    if (events > 0) {
+        printf("\nResetting cursors");
+        ResetCursor(&right_cursor);
+        ResetCursor(&left_cursor);
         events--;
+    }
+    
+    
+    if(UpdateFruitPosition(&testFruit) == 2){
+        printf("\nTest fruit offscreen");
+        InitFruit(&testFruit);
+    }
+    
+    
+    if(CursorColision(&right_cursor, &testFruit2)){
+        printf("\nCursor and fruit are colliding!");
+    } else {
+        printf("\nNo collision");
     }
 }
 
-// Gameplay Screen Draw logic
 void DrawGameplayScreen(void)
-{
-    // Draw Background
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), PURPLE);
+{   
+    // Draw background
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), WHITE);
     
-    Vector2 pos = { 20, 10 };
-    DrawTextEx(font, "GAMEPLAY SCREEN", pos, font.baseSize*3.0f, 4, MAROON);
-    
-    if(!imu_calibrated){
-        DrawText("Calibrating IMU - Keep Still!", screenWidth/2 - 150, 150, 20, MAROON);
+    if (!right_cursor.calibrated || !left_cursor.calibrated) {
+        DrawText("Calibrating IMUs - Keep Still!", screenWidth / 2 - 150, 150, 20, MAROON);
     }
     
-    // FPS counter
     char buffer[64];
     sprintf(buffer, "FPS: %d", GetFPS());
     DrawText(buffer, 10, 10, 20, BLACK);
     
-    // Debug info
-    sprintf(buffer, "Vel: %.1f, %.1f", imu_vel.x, imu_vel.y);
-    DrawText(buffer, 10, 30, 20, BLACK);
+    // Right cursor debug (left side of screen)
+    sprintf(buffer, "R Vel: %.1f, %.1f", right_cursor.vel.x, right_cursor.vel.y);
+    DrawText(buffer, 10, 30, 16, BLACK);
+    sprintf(buffer, "R Pos: %.0f, %.0f", right_cursor.pos.x, right_cursor.pos.y);
+    DrawText(buffer, 10, 46, 16, BLACK);
     
-    sprintf(buffer, "Pos: %.0f, %.0f", player_pos.x, player_pos.y);
-    DrawText(buffer, 10, 50, 20, BLACK);
+    // Left cursor debug (right side of screen)
+    sprintf(buffer, "L Vel: %.1f, %.1f", left_cursor.vel.x, left_cursor.vel.y);
+    DrawText(buffer, 10, 66, 16, BLACK);
+    sprintf(buffer, "L Pos: %.0f, %.0f", left_cursor.pos.x, left_cursor.pos.y);
+    DrawText(buffer, 10, 82, 16, BLACK);
     
-    sprintf(buffer, "Accel: %.3f, %.3f", debug_ax, debug_ay);
-    DrawText(buffer, 10, 70, 20, BLACK);
+    // Draw fruit
+    DrawFruit(&testFruit);
+    DrawFruit(&testFruit2);
     
-    sprintf(buffer, "Linear: %.3f, %.3f", debug_linear_ax, debug_linear_ay);
-    DrawText(buffer, 10, 90, 20, BLACK);
-    
-    // Draw Player
-    DrawCircleV(player_pos, 10, BLACK);
+    // Draw cursors with different colors
+    DrawCursor(&right_cursor);
+    DrawCursor(&left_cursor);
 }
 
 // Gameplay Screen Unload logic
