@@ -40,7 +40,8 @@ PROJECT_SOURCE_FILES  ?= \
     screen_gameplay.c \
     screen_ending.c \
     dongleparse.c \
-    imu_cursor.c
+    imu_cursor.c \
+    fruit.c
 
 # raylib library variables
 RAYLIB_SRC_PATH       ?= ../../raylib/src
