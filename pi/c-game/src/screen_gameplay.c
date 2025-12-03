@@ -114,7 +114,7 @@ void UpdateGameplayScreen(void)
     #ifdef _DEBUG
     left_cursor.pos = GetMousePosition();
     left_cursor.calibrated = true;
-    #elif
+    #else
     if (!UpdateCursorCalibration(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y})) {
         UpdateCursorMovement(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y}, dt);
     }

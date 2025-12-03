@@ -25,12 +25,29 @@
 
 #include "raylib.h"
 #include "screens.h"
+#include "imu_cursor.h"
+#include "button.h"
+#include <stdio.h>
+#include <pthread.h>
 
 //----------------------------------------------------------------------------------
 // Module Variables Definition (local)
 //----------------------------------------------------------------------------------
 static int framesCounter = 0;
 static int finishScreen = 0;
+
+// Two cursors
+static IMUCursor right_cursor;
+static IMUCursor left_cursor;
+
+//Buttons
+static Button play_again_button;
+//TODO add quit button
+
+extern pthread_mutex_t pkt_mutex;
+extern struct dp_packet right_pkt;
+extern struct dp_packet left_pkt;  // Add this extern
+static int events = 0;
 
 //----------------------------------------------------------------------------------
 // Ending Screen Functions Definition
@@ -39,33 +56,91 @@ static int finishScreen = 0;
 // Ending Screen Initialization logic
 void InitEndingScreen(void)
 {
-    // TODO: Initialize ENDING screen variables here!
     framesCounter = 0;
     finishScreen = 0;
+    
+    // Init buttons
+    Rectangle temp_rect = (Rectangle){screenWidth/2, screenHeight/2 + 130, 200, 80};
+    InitButton(&play_again_button, temp_rect, BLUE, RED, "Play Again");
+    
+    //Init cursors
+    InitCursors(&right_cursor, &left_cursor);
 }
 
 // Ending Screen Update logic
 void UpdateEndingScreen(void)
 {
-    // TODO: Update ENDING screen variables here!
+    struct dp_packet right_local, left_local;
 
+    pthread_mutex_lock(&pkt_mutex);
+    right_local = right_pkt;
+    left_local = left_pkt;
+    events = right_button_events;
+    right_button_events = 0;
+    pthread_mutex_unlock(&pkt_mutex);
+    
+    float dt = GetFrameTime();
+    if (dt > 0.1f) dt = 0.016f;
+    
+    // Update right cursor
+    if(right_connected){
+        if (!UpdateCursorCalibration(&right_cursor, (Vector2){right_local.accel.x, right_local.accel.y})) {
+            UpdateCursorMovement(&right_cursor, (Vector2){right_local.accel.x, right_local.accel.y}, dt);
+        }
+    }
+    
+    // Update left cursor
+    if(left_connected){
+        if (!UpdateCursorCalibration(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y})) {
+            UpdateCursorMovement(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y}, dt);
+        }
+    }
+    
+    //Use mouse for left cursor control
+    #ifdef _DEBUG
+    left_cursor.pos = GetMousePosition();
+    if(IsGestureDetected(GESTURE_TAP)){
+        events++;
+    }
+    #endif
+    
+    //TODO rethink button press
+    bool imu_button_pressed = false;
+    if(events > 0){
+        imu_button_pressed = true;
+        events--;
+    }
+    
+    bool play_again_r = IsButtonPressed(&play_again_button, right_cursor.pos, imu_button_pressed);
+    bool play_again_l = IsButtonPressed(&play_again_button, left_cursor.pos, imu_button_pressed);
+    
+    bool play_again = play_again_l || play_again_r;
+    
     // Press enter or tap to return to TITLE screen
-    if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+    // IsGestureDetected(GESTURE_TAP)
+    if (IsKeyPressed(KEY_ENTER) || play_again)
     {
-        finishScreen = 1;
-        PlaySound(fxCoin);
+        finishScreen = 1; //1 is start screen
+        //PlaySound(fxCoin);
     }
 }
 
 // Ending Screen Draw logic
 void DrawEndingScreen(void)
 {
-    // TODO: Draw ENDING screen here!
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLUE);
-
-    Vector2 pos = { 20, 10 };
-    DrawTextEx(font, "ENDING SCREEN", pos, font.baseSize*3.0f, 4, DARKBLUE);
-    DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", 120, 220, 20, DARKBLUE);
+    // Draw background
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), WHITE);
+    
+    char buffer[64];
+    // Score counter
+    int fontSize = 60;
+    sprintf(buffer, "Score: %d", score);
+    int textWidth = MeasureText(buffer, fontSize);
+    int x = (screenWidth - textWidth) / 2;
+    DrawText(buffer, x, 100, fontSize, BLACK);
+    
+    // Draw buttons
+    DrawButton(&play_again_button);
 }
 
 // Ending Screen Unload logic

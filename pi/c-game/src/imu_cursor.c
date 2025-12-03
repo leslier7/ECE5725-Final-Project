@@ -50,6 +50,15 @@ int UpdateCursorCalibration(IMUCursor *cursor, Vector2 accel)
     return 1; // Still calibrating
 }
 
+void InitCursors(IMUCursor *right_cursor, IMUCursor *left_cursor){
+    // Init cursors
+    Vector2 temp_pos = (Vector2){screenWidth/2 + 50, screenHeight/2};
+    InitCursor(right_cursor, temp_pos, PURPLE, "R");
+    
+    temp_pos = (Vector2){screenWidth/2 - 50, screenHeight/2};
+    InitCursor(left_cursor, temp_pos, BLUE, "L");
+}
+
 void UpdateCursorMovement(IMUCursor *cursor, Vector2 accel, float dt)
 {
     // Subtract bias and apply orientation correction

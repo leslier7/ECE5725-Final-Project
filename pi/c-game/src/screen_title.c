@@ -44,6 +44,7 @@ static IMUCursor left_cursor;
 
 // Buttons
 static Button start_button;
+//TODO add quit button
 
 extern pthread_mutex_t pkt_mutex;
 extern struct dp_packet right_pkt;
@@ -75,7 +76,6 @@ void InitTitleScreen(void)
 // Title Screen Update logic
 void UpdateTitleScreen(void)
 {
-    // TODO: Update TITLE screen variables here!
     struct dp_packet right_local, left_local;
     
     pthread_mutex_lock(&pkt_mutex);
@@ -110,13 +110,18 @@ void UpdateTitleScreen(void)
     }
     #endif
     
+    //TODO rethink button press
     bool imu_button_pressed = false;
     if(events > 0){
         imu_button_pressed = true;
         events--;
     }
     
-    bool start_game = IsButtonPressed(&start_button, left_cursor.pos, imu_button_pressed);
+    bool start_game_r = IsButtonPressed(&start_button, right_cursor.pos, imu_button_pressed);
+    
+    bool start_game_l = IsButtonPressed(&start_button, left_cursor.pos, imu_button_pressed);
+    
+    bool start_game = start_game_r || start_game_l;
     
     // Press start button or press enter
     if (IsKeyPressed(KEY_ENTER) || start_game)

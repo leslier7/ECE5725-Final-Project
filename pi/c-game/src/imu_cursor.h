@@ -28,6 +28,8 @@ typedef struct {
 
 void InitCursor(IMUCursor *cursor, Vector2 pos, Color color, const char *text);
 
+void InitCursors(IMUCursor *right_cursor, IMUCursor *left_cursor);
+
 int UpdateCursorCalibration(IMUCursor *cursor, Vector2 accel);
 
 void UpdateCursorMovement(IMUCursor *cursor, Vector2 accel, float dt);
