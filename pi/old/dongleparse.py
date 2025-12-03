@@ -123,8 +123,8 @@ class DongleReader:
                     continue
                 raise RuntimeError("Bad sensor values")
 
-            if self.last_seq is not None and seq != (self.last_seq + 1) & 0xFFFF:
-                print(f"WARNING: seq jump {self.last_seq} -> {seq}")
+            # if self.last_seq is not None and seq != (self.last_seq + 1) & 0xFFFF:
+                # print(f"WARNING: seq jump {self.last_seq} -> {seq}")
             self.last_seq = seq
             return pipe, button, imu_data, seq
 
