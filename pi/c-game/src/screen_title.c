@@ -25,12 +25,26 @@
 
 #include "raylib.h"
 #include "screens.h"
+#include "imu_cursor.h"
+#include <stdio.h>
+#include <math.h>
+#include <pthread.h>
+#include <stdlib.h>
 
 //----------------------------------------------------------------------------------
 // Module Variables Definition (local)
 //----------------------------------------------------------------------------------
 static int framesCounter = 0;
 static int finishScreen = 0;
+
+// Two cursors
+static IMUCursor right_cursor;
+static IMUCursor left_cursor;
+
+extern pthread_mutex_t pkt_mutex;
+extern struct dp_packet right_pkt;
+extern struct dp_packet left_pkt;  // Add this extern
+static int events = 0;
 
 //----------------------------------------------------------------------------------
 // Title Screen Functions Definition
@@ -39,15 +53,45 @@ static int finishScreen = 0;
 // Title Screen Initialization logic
 void InitTitleScreen(void)
 {
-    // TODO: Initialize TITLE screen variables here!
     framesCounter = 0;
     finishScreen = 0;
+    
+    Vector2 temp_pos = (Vector2){screenWidth/2 + 50, screenHeight/2};
+    InitCursor(&right_cursor, temp_pos, PURPLE, "R");
+    
+    temp_pos = (Vector2){screenWidth/2 - 50, screenHeight/2};
+    InitCursor(&left_cursor, temp_pos, BLUE, "L");
 }
 
 // Title Screen Update logic
 void UpdateTitleScreen(void)
 {
     // TODO: Update TITLE screen variables here!
+    struct dp_packet right_local, left_local;
+    
+    pthread_mutex_lock(&pkt_mutex);
+    right_local = right_pkt;
+    left_local = left_pkt;
+    events = right_button_events;
+    right_button_events = 0;
+    pthread_mutex_unlock(&pkt_mutex);
+    
+    float dt = GetFrameTime();
+    if (dt > 0.1f) dt = 0.016f;
+    
+    // Update right cursor
+    if(right_connected){
+        if (!UpdateCursorCalibration(&right_cursor, (Vector2){right_local.accel.x, right_local.accel.y})) {
+            UpdateCursorMovement(&right_cursor, (Vector2){right_local.accel.x, right_local.accel.y}, dt);
+        }
+    }
+    
+    // Update left cursor
+    if(left_connected){
+        if (!UpdateCursorCalibration(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y})) {
+            UpdateCursorMovement(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y}, dt);
+        }
+    }
 
     // Press enter or tap to change to GAMEPLAY screen
     if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
@@ -61,11 +105,32 @@ void UpdateTitleScreen(void)
 // Title Screen Draw logic
 void DrawTitleScreen(void)
 {
-    // TODO: Draw TITLE screen here!
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), GREEN);
-    Vector2 pos = { 20, 10 };
-    DrawTextEx(font, "TITLE SCREEN", pos, font.baseSize*3.0f, 4, DARKGREEN);
-    DrawText("Press ENTER or tap for Gameplay", 120, 220, 20, DARKGREEN);
+    // Draw background
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), WHITE);
+    
+    if(right_connected && left_connected){
+        if (!right_cursor.calibrated && !left_cursor.calibrated) {
+            DrawText("Calibrating IMUs - Keep Still!", screenWidth / 2 - 150, 150, 20, MAROON);
+        }
+    } else {
+        const char *text = "Please plug both controllers in!";
+        int fontSize = 30;
+        int textWidth = MeasureText(text, fontSize);
+        int x = (screenWidth - textWidth) / 2;
+        DrawText(text, x, 150, fontSize, BLACK);
+    }
+    
+    // Draw cursors
+    DrawCursor(&right_cursor);
+    DrawCursor(&left_cursor);
+    
+    // Draw Title
+    //DrawText("Fruit Ninja Clone!", screenWidth / 2 - 210, 70, 55, BLACK);
+    const char *title = "Fruit Ninja Clone!";
+    int fontSize = 55;
+    int textWidth = MeasureText(title, fontSize);
+    int x = (screenWidth - textWidth) / 2;
+    DrawText(title, x, 70, fontSize, BLACK);
 }
 
 // Title Screen Unload logic

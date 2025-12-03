@@ -17,6 +17,7 @@
 #include "dongleparse.h"
 #include <stdio.h>
 #include <pthread.h>
+#include <time.h>
 
 pthread_t dongle_thread;
 pthread_mutex_t pkt_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -53,6 +54,12 @@ static bool transFadeOut = false;
 static int transFromScreen = -1;
 static GameScreen transToScreen = UNKNOWN;
 
+bool right_connected = true;
+bool left_connected =true;
+
+static time_t prev_time_r;
+static time_t prev_time_l;
+
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
 //----------------------------------------------------------------------------------
@@ -69,6 +76,10 @@ static void *dongle_thread_fn(void *arg)
 {
     int fd = *(int*)arg;
     struct dp_packet pkt;
+    
+    int prev_seq_r = 0;
+    int prev_seq_l = 0;
+    
     while (dongle_thread_run) {
         int r = dp_read_packet(fd, &pkt);
         if (r == 1) {
@@ -80,10 +91,14 @@ static void *dongle_thread_fn(void *arg)
             switch (pkt.pipe) {
                 case 1:
                     right_pkt = pkt;
+                    prev_seq_r = pkt.seq;
+                    prev_time_r = time(NULL);
                     if (pkt.button) right_button_events++;
                     break;
                 case 2:
                     left_pkt = pkt;
+                    prev_seq_l = pkt.seq;
+                    prev_time_l = time(NULL);
                     if (pkt.button) left_button_events++;
                     break;
                 default: break;
@@ -95,6 +110,15 @@ static void *dongle_thread_fn(void *arg)
         } else {
             // error -> optionally sleep then retry
             //usleep(10000);
+        }
+        
+        //Determine if the controllers are connected
+        time_t now = time(NULL);
+        if (now - prev_time_r > 3) { // Longer than 3 seconds since last right packet
+            printf("Right controller not connected\n");
+        }
+        if (now - prev_time_l > 3) { // Longer than 3 seconds since last left packet
+            printf("Left controller not connected\n");
         }
     }
     return NULL;
@@ -124,8 +148,9 @@ int main(void)
     //PlayMusicStream(music);
 
     // Setup and init first screen
-    currentScreen = GAMEPLAY;
-    InitGameplayScreen();
+    currentScreen = TITLE;
+    InitTitleScreen();
+    //InitGameplayScreen();
     //InitLogoScreen();
 
 
@@ -165,6 +190,36 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+
+        time_t now = time(NULL);
+        pthread_mutex_lock(&pkt_mutex);
+        time_t last_r = prev_time_r;
+        time_t last_l = prev_time_l;
+        pthread_mutex_unlock(&pkt_mutex);
+
+        if (last_r == 0 || now - last_r > 3) {
+            if (right_connected) {
+                printf("Right controller not connected\n");
+                right_connected = false;
+            }
+        } else {
+            if (!right_connected) {
+                printf("Right controller connected\n");
+                right_connected = true;
+            }
+        }
+
+        if (last_l == 0 || now - last_l > 3) {
+            if (left_connected) {
+                printf("Left controller not connected\n");
+                left_connected = false;
+            }
+        } else {
+            if (!left_connected) {
+                printf("Left controller connected\n");
+                left_connected = true;
+            }
+        }
 
         UpdateDrawFrame();
 

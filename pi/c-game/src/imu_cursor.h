@@ -32,7 +32,7 @@ int UpdateCursorCalibration(IMUCursor *cursor, Vector2 accel);
 
 void UpdateCursorMovement(IMUCursor *cursor, Vector2 accel, float dt);
 
-void ResetCursor(IMUCursor *cursor);
+void ResetCursor(IMUCursor *cursor, Vector2 pos);
 
 void DrawCursor(IMUCursor *cursor);
 

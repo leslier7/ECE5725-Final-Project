@@ -54,7 +54,7 @@ static IMUCursor left_cursor;
 extern pthread_mutex_t pkt_mutex;
 extern struct dp_packet right_pkt;
 extern struct dp_packet left_pkt;  // Add this extern
-int events = 0;
+static int events = 0;
 
 //static Fruit testFruit;
 //static Fruit testFruit2;
@@ -118,8 +118,10 @@ void UpdateGameplayScreen(void)
     // Button event: reset both cursors
     if (events > 0) {
         printf("\nResetting cursors");
-        ResetCursor(&right_cursor);
-        ResetCursor(&left_cursor);
+        Vector2 temp_pos = (Vector2){screenWidth/2 + 50, screenHeight/2};
+        ResetCursor(&right_cursor, temp_pos);
+        temp_pos = (Vector2){screenWidth/2 - 50, screenHeight/2};
+        ResetCursor(&left_cursor, temp_pos);
         events--;
     }
     
@@ -200,7 +202,7 @@ void DrawGameplayScreen(void)
         }
     }
     
-    // Draw cursors with different colors
+    // Draw cursors
     DrawCursor(&right_cursor);
     DrawCursor(&left_cursor);
 }

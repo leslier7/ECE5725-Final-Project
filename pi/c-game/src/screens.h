@@ -48,6 +48,9 @@ extern struct dp_packet right_pkt, left_pkt;
 extern int right_button_events;
 extern int left_button_events;
 
+extern bool right_connected;
+extern bool left_connected;
+
 extern int score;
 
 #ifdef __cplusplus

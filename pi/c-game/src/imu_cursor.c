@@ -108,9 +108,9 @@ void UpdateCursorMovement(IMUCursor *cursor, Vector2 accel, float dt)
     if (cursor->pos.y > GetScreenHeight()) { cursor->pos.y = GetScreenHeight(); cursor->vel.y = 0; }
 }
 
-void ResetCursor(IMUCursor *cursor)
+void ResetCursor(IMUCursor *cursor, Vector2 pos)
 {
-    cursor->pos = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
+    cursor->pos = pos;
     cursor->vel = (Vector2){0, 0};
 }
 
