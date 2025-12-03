@@ -111,9 +111,14 @@ void UpdateGameplayScreen(void)
     }
     
     // Update left cursor
+    #ifdef _DEBUG
+    left_cursor.pos = GetMousePosition();
+    left_cursor.calibrated = true;
+    #elif
     if (!UpdateCursorCalibration(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y})) {
         UpdateCursorMovement(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y}, dt);
     }
+    #endif
     
     // Button event: reset both cursors
     if (events > 0) {
@@ -146,6 +151,17 @@ void UpdateGameplayScreen(void)
     
     for(int i = 0; i < NUM_FRUITS; i++){
         if(CursorColision(&right_cursor, &fruits[i])){
+            
+            if(fruits[i].type == BOMB){
+                printf("\nHit bomb. Game over");
+                finishScreen = 1; // Go to the ending screen
+            } else {
+                score++;
+                InitFruit(&fruits[i]);
+            }
+        }
+        
+        if(CursorColision(&left_cursor, &fruits[i])){
             
             if(fruits[i].type == BOMB){
                 printf("\nHit bomb. Game over");

@@ -26,6 +26,7 @@
 #include "raylib.h"
 #include "screens.h"
 #include "imu_cursor.h"
+#include "button.h"
 #include <stdio.h>
 #include <math.h>
 #include <pthread.h>
@@ -40,6 +41,9 @@ static int finishScreen = 0;
 // Two cursors
 static IMUCursor right_cursor;
 static IMUCursor left_cursor;
+
+// Buttons
+static Button start_button;
 
 extern pthread_mutex_t pkt_mutex;
 extern struct dp_packet right_pkt;
@@ -56,11 +60,16 @@ void InitTitleScreen(void)
     framesCounter = 0;
     finishScreen = 0;
     
+    // Init cursors
     Vector2 temp_pos = (Vector2){screenWidth/2 + 50, screenHeight/2};
     InitCursor(&right_cursor, temp_pos, PURPLE, "R");
     
     temp_pos = (Vector2){screenWidth/2 - 50, screenHeight/2};
     InitCursor(&left_cursor, temp_pos, BLUE, "L");
+    
+    // Init buttons
+    Rectangle temp_rect = (Rectangle){screenWidth/2, screenHeight/2 + 130, 150, 80};
+    InitButton(&start_button, temp_rect, BLUE, RED, "Start");
 }
 
 // Title Screen Update logic
@@ -92,9 +101,25 @@ void UpdateTitleScreen(void)
             UpdateCursorMovement(&left_cursor, (Vector2){left_local.accel.x, left_local.accel.y}, dt);
         }
     }
-
-    // Press enter or tap to change to GAMEPLAY screen
-    if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+    
+    //Use mouse for left cursor control
+    #ifdef _DEBUG
+    left_cursor.pos = GetMousePosition();
+    if(IsGestureDetected(GESTURE_TAP)){
+        events++;
+    }
+    #endif
+    
+    bool imu_button_pressed = false;
+    if(events > 0){
+        imu_button_pressed = true;
+        events--;
+    }
+    
+    bool start_game = IsButtonPressed(&start_button, left_cursor.pos, imu_button_pressed);
+    
+    // Press start button or press enter
+    if (IsKeyPressed(KEY_ENTER) || start_game)
     {
         //finishScreen = 1;   // OPTIONS
         finishScreen = 2;   // GAMEPLAY
@@ -107,6 +132,9 @@ void DrawTitleScreen(void)
 {
     // Draw background
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), WHITE);
+    
+    // Draw Buttons
+    DrawButton(&start_button);
     
     if(right_connected && left_connected){
         if (!right_cursor.calibrated && !left_cursor.calibrated) {
