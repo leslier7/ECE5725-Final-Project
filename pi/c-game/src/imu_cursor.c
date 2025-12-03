@@ -16,7 +16,7 @@ static const float ACCEL_DEADZONE    = 0.05f;
 static const float MAX_VEL           = 2500.0f;
 static const float HP_ALPHA          = 0.995f;
 
-void InitCursor(IMUCursor *cursor, Color color)
+void InitCursor(IMUCursor *cursor, Color color, const char *text)
 {
     cursor->pos = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
     cursor->vel = (Vector2){0, 0};
@@ -30,6 +30,7 @@ void InitCursor(IMUCursor *cursor, Color color)
     cursor->debug_linear_ax = cursor->debug_linear_ay = 0;
     cursor->rad = 10;
     cursor->color = color;
+    cursor->text = text; // Single char to tell which cursor this is
 }
 
 // Returns 1 if still calibrating, 0 if ready to process
@@ -115,4 +116,5 @@ void ResetCursor(IMUCursor *cursor)
 
 void DrawCursor(IMUCursor *cursor){
     DrawCircleV(cursor->pos, cursor->rad, cursor->color);
+    DrawText(cursor->text, cursor->pos.x-5, cursor->pos.y-5, 15, BLACK);
 }

@@ -108,15 +108,10 @@ int main(void)
     // Initialization
     //---------------------------------------------------------
     InitWindow(screenWidth, screenHeight, "test");
-
-    // Set up dongle reader
-    int dongle = dp_open("/dev/ttyACM0", 115200);
-    if (dongle < 0) {
-        printf("\nUnable to connect to dongle");
-        return 1;
-    }
     
-    
+    #ifdef _DEBUG
+    printf("\nStarting game in debug mode");
+    #endif
 
     InitAudioDevice();      // Initialize audio device
 
@@ -139,7 +134,26 @@ int main(void)
 #else
     SetTargetFPS(60);       // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
-
+    
+    
+    // Set up dongle reader
+    
+    bool dongle_init = FileExists("/dev/ttyACM0");
+    
+    while(!dongle_init && !WindowShouldClose()){
+        dongle_init = FileExists("/dev/ttyACM0");
+        BeginDrawing();
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), WHITE);
+        DrawText("Dongle not plugged in. Please plug in dongle!", 15, screenHeight/2, 35, BLACK);
+        EndDrawing();
+    }
+    
+    int dongle = dp_open("/dev/ttyACM0", 115200);
+    if (dongle < 0) {
+        printf("\nUnable to connect to dongle");
+        return 1;
+    }
+    
      // start reader thread (pass fd by value)
     int dongle_fd = dongle;
     if (pthread_create(&dongle_thread, NULL, dongle_thread_fn, &dongle_fd) != 0) {
@@ -151,24 +165,6 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        // if(dp_read_packet(dongle, &dongle_pkt) != 1){
-        //     printf("\nDongle read error");
-        // } else {
-        //     //printf("\n");
-        //     printf("\nseq=%u pipe=%u button=%u", dongle_pkt.seq, dongle_pkt.pipe, dongle_pkt.button);
-        //     //printf("\naccel x: %f y: %f z: %f   |   gyro x: %f y: %f z: %f", dongle_pkt.accel.x, dongle_pkt.accel.y, dongle_pkt.accel.z, dongle_pkt.gyro.x, dongle_pkt.gyro.y, dongle_pkt.gyro.z);
-        //     switch(dongle_pkt.pipe){
-        //         case 1:
-        //             right_pkt = dongle_pkt;
-        //             break;
-        //         case 2:
-        //             left_pkt = dongle_pkt;
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        // }
-
 
         UpdateDrawFrame();
 

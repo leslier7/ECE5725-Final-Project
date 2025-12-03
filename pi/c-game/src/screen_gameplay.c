@@ -53,6 +53,8 @@ int events = 0;
 static Fruit testFruit;
 static Fruit testFruit2;
 
+static int score;
+
 //----------------------------------------------------------------------------------
 // Gameplay Screen Functions Definition
 //----------------------------------------------------------------------------------
@@ -63,8 +65,10 @@ void InitGameplayScreen(void)
     framesCounter = 0;
     finishScreen = 0;
     
-    InitCursor(&right_cursor, BLACK);
-    InitCursor(&left_cursor, BLUE);
+    score = 0;
+    
+    InitCursor(&right_cursor, PURPLE, "R");
+    InitCursor(&left_cursor, BLUE, "L");
     
     // Debug
     left_cursor.pos = (Vector2){300, 300};
@@ -115,8 +119,9 @@ void UpdateGameplayScreen(void)
     
     if(CursorColision(&right_cursor, &testFruit2)){
         printf("\nCursor and fruit are colliding!");
+        score++;
     } else {
-        printf("\nNo collision");
+        //printf("\nNo collision");
     }
 }
 
@@ -130,20 +135,27 @@ void DrawGameplayScreen(void)
     }
     
     char buffer[64];
-    sprintf(buffer, "FPS: %d", GetFPS());
-    DrawText(buffer, 10, 10, 20, BLACK);
+    // Score counter
+    sprintf(buffer, "Score: %d", score);
+    DrawText(buffer, 10, 10, 30, BLACK);
     
+    //FPS counter
+    sprintf(buffer, "FPS: %d", GetFPS());
+    DrawText(buffer, 10, screenHeight - 20, 20, BLACK);
+    
+    #ifdef _DEBUG
     // Right cursor debug (left side of screen)
     sprintf(buffer, "R Vel: %.1f, %.1f", right_cursor.vel.x, right_cursor.vel.y);
-    DrawText(buffer, 10, 30, 16, BLACK);
+    DrawText(buffer, 10, 40, 16, BLACK);
     sprintf(buffer, "R Pos: %.0f, %.0f", right_cursor.pos.x, right_cursor.pos.y);
-    DrawText(buffer, 10, 46, 16, BLACK);
+    DrawText(buffer, 10, 56, 16, BLACK);
     
     // Left cursor debug (right side of screen)
     sprintf(buffer, "L Vel: %.1f, %.1f", left_cursor.vel.x, left_cursor.vel.y);
-    DrawText(buffer, 10, 66, 16, BLACK);
+    DrawText(buffer, 10, 76, 16, BLACK);
     sprintf(buffer, "L Pos: %.0f, %.0f", left_cursor.pos.x, left_cursor.pos.y);
-    DrawText(buffer, 10, 82, 16, BLACK);
+    DrawText(buffer, 10, 92, 16, BLACK);
+    #endif
     
     // Draw fruit
     DrawFruit(&testFruit);

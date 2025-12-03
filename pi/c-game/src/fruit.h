@@ -22,6 +22,7 @@ typedef struct {
     Vector2 pos;
     Vector2 vel;
     FruitType type;
+    bool wasHit;
 } Fruit;
 
 extern const FruitDef FRUIT_DEFS[];

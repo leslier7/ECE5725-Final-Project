@@ -19,13 +19,14 @@ typedef struct {
     int gravity_initialized;
     int rad;
     Color color;
+    const char *text;
     
     // Debug
     float debug_ax, debug_ay;
     float debug_linear_ax, debug_linear_ay;
 } IMUCursor;
 
-void InitCursor(IMUCursor *cursor, Color color);
+void InitCursor(IMUCursor *cursor, Color color, const char *text);
 
 int UpdateCursorCalibration(IMUCursor *cursor, Vector2 accel);
 
