@@ -36,6 +36,12 @@
 #include <stdlib.h>
 
 //----------------------------------------------------------------------------------
+// Global variable definitions
+//----------------------------------------------------------------------------------
+int score;
+
+
+//----------------------------------------------------------------------------------
 // Module Variables Definition (local)
 //----------------------------------------------------------------------------------
 static int framesCounter = 0;
@@ -50,10 +56,11 @@ extern struct dp_packet right_pkt;
 extern struct dp_packet left_pkt;  // Add this extern
 int events = 0;
 
-static Fruit testFruit;
-static Fruit testFruit2;
+//static Fruit testFruit;
+//static Fruit testFruit2;
 
-static int score;
+#define NUM_FRUITS 3
+static Fruit fruits[NUM_FRUITS];
 
 //----------------------------------------------------------------------------------
 // Gameplay Screen Functions Definition
@@ -67,15 +74,21 @@ void InitGameplayScreen(void)
     
     score = 0;
     
-    InitCursor(&right_cursor, PURPLE, "R");
-    InitCursor(&left_cursor, BLUE, "L");
     
-    // Debug
-    left_cursor.pos = (Vector2){300, 300};
+    Vector2 temp_pos = (Vector2){screenWidth/2 + 50, screenHeight/2};
+    InitCursor(&right_cursor, temp_pos, PURPLE, "R");
+    
+    temp_pos = (Vector2){screenWidth/2 - 50, screenHeight/2};
+    InitCursor(&left_cursor, temp_pos, BLUE, "L");
+    
+    
     
     srand(time(NULL));  // Only once!
-    InitFruit(&testFruit);
-    InitFruitDebug(&testFruit2, 0, (Vector2){screenWidth/2, screenHeight/2}, (Vector2){0, 0});
+    //InitFruit(&testFruit);
+    //InitFruitDebug(&testFruit2, 0, (Vector2){screenWidth/2, screenHeight/2}, (Vector2){0, 0});
+    for(int i = 0; i < NUM_FRUITS; i++){
+        InitFruit(&fruits[i]);
+    }
 }
 
 void UpdateGameplayScreen(void)
@@ -111,18 +124,38 @@ void UpdateGameplayScreen(void)
     }
     
     
-    if(UpdateFruitPosition(&testFruit) == 2){
-        printf("\nTest fruit offscreen");
-        InitFruit(&testFruit);
+    // if(UpdateFruitPosition(&testFruit) == 2){
+    //     printf("\nTest fruit offscreen");
+    //     InitFruit(&testFruit);
+    // }
+    if(left_cursor.calibrated == 1 && right_cursor.calibrated == 1){
+        for(int i = 0; i < NUM_FRUITS; i++){
+            if(UpdateFruitPosition(&fruits[i]) == 2){
+                InitFruit(&fruits[i]);
+            }
+        }
     }
     
     
-    if(CursorColision(&right_cursor, &testFruit2)){
-        printf("\nCursor and fruit are colliding!");
-        score++;
-    } else {
-        //printf("\nNo collision");
+    // if(CursorColision(&right_cursor, &testFruit2)){
+    //     printf("\nCursor and fruit are colliding!");
+    //     score++;
+    // }
+    
+    for(int i = 0; i < NUM_FRUITS; i++){
+        if(CursorColision(&right_cursor, &fruits[i])){
+            
+            if(fruits[i].type == BOMB){
+                printf("\nHit bomb. Game over");
+                finishScreen = 1; // Go to the ending screen
+            } else {
+                score++;
+                InitFruit(&fruits[i]);
+            }
+        }
     }
+    
+    
 }
 
 void DrawGameplayScreen(void)
@@ -158,8 +191,14 @@ void DrawGameplayScreen(void)
     #endif
     
     // Draw fruit
-    DrawFruit(&testFruit);
-    DrawFruit(&testFruit2);
+    // DrawFruit(&testFruit);
+    // DrawFruit(&testFruit2);
+    
+    if(left_cursor.calibrated == 1 && right_cursor.calibrated == 1){
+        for(int i = 0; i < NUM_FRUITS; i++){
+            DrawFruit(&fruits[i]);
+        }
+    }
     
     // Draw cursors with different colors
     DrawCursor(&right_cursor);

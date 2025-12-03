@@ -26,7 +26,7 @@ typedef struct {
     float debug_linear_ax, debug_linear_ay;
 } IMUCursor;
 
-void InitCursor(IMUCursor *cursor, Color color, const char *text);
+void InitCursor(IMUCursor *cursor, Vector2 pos, Color color, const char *text);
 
 int UpdateCursorCalibration(IMUCursor *cursor, Vector2 accel);
 

@@ -20,6 +20,7 @@ const FruitDef FRUIT_DEFS[] = {
     [APPLE]      = { .radius = 15, .color = RED },
     [WATERMELON] = { .radius = 35, .color = GREEN },
     [PEACH]      = { .radius = 20, .color = ORANGE },
+    [BOMB]       = { .radius = 25, .color = BLACK},
 };
 
 static float randFloatInRange(float low, float high){

@@ -48,6 +48,8 @@ extern struct dp_packet right_pkt, left_pkt;
 extern int right_button_events;
 extern int left_button_events;
 
+extern int score;
+
 #ifdef __cplusplus
 extern "C" {            // Prevents name mangling of functions
 #endif

@@ -16,9 +16,9 @@ static const float ACCEL_DEADZONE    = 0.05f;
 static const float MAX_VEL           = 2500.0f;
 static const float HP_ALPHA          = 0.995f;
 
-void InitCursor(IMUCursor *cursor, Color color, const char *text)
+void InitCursor(IMUCursor *cursor, Vector2 pos, Color color, const char *text)
 {
-    cursor->pos = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
+    cursor->pos = pos;
     cursor->vel = (Vector2){0, 0};
     cursor->bias = (Vector2){0, 0};
     cursor->calib_accum = (Vector2){0, 0};
@@ -28,7 +28,7 @@ void InitCursor(IMUCursor *cursor, Color color, const char *text)
     cursor->gravity_initialized = 0;
     cursor->debug_ax = cursor->debug_ay = 0;
     cursor->debug_linear_ax = cursor->debug_linear_ay = 0;
-    cursor->rad = 10;
+    cursor->rad = 20;
     cursor->color = color;
     cursor->text = text; // Single char to tell which cursor this is
 }

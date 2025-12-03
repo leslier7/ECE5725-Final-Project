@@ -10,6 +10,7 @@ typedef enum {
     APPLE,
     WATERMELON,
     PEACH,
+    BOMB,
     FRUIT_TYPE_COUNT
 } FruitType;
 
