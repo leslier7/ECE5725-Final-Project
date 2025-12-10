@@ -16,6 +16,25 @@ static const float ACCEL_DEADZONE    = 0.05f;
 static const float MAX_VEL           = 2500.0f;
 static const float HP_ALPHA          = 0.995f;
 
+static Vector2 TransformImuAccel(Vector2 raw)
+{
+    // EXAMPLE: IMU rotated 90° clockwise relative to original
+    //   old_x -> -new_y
+    //   old_y ->  new_x
+    // Return (world_x, world_y)
+    return (Vector2){ -raw.y, raw.x };
+
+    // Other common cases (pick ONE and delete the rest):
+    // 180° rotation:
+    // return (Vector2){ -raw.x, -raw.y };
+    // 90° CCW:
+    // return (Vector2){ -raw.y, raw.x };
+    // flipped X only:
+    // return (Vector2){ -raw.x, raw.y };
+    // flipped Y only:
+    // return (Vector2){ raw.x, -raw.y };
+}
+
 void InitCursor(IMUCursor *cursor, Vector2 pos, Color color, const char *text)
 {
     cursor->pos = pos;
@@ -35,11 +54,13 @@ void InitCursor(IMUCursor *cursor, Vector2 pos, Color color, const char *text)
 
 // Returns 1 if still calibrating, 0 if ready to process
 int UpdateCursorCalibration(IMUCursor *cursor, Vector2 accel)
-{
+{   
+    Vector2 a = TransformImuAccel(accel);
+
     if (cursor->calibrated) return 0;
     
-    cursor->calib_accum.x += accel.x;
-    cursor->calib_accum.y += accel.y;
+    cursor->calib_accum.x += a.x;
+    cursor->calib_accum.y += a.y;
     cursor->calib_count++;
     
     if (cursor->calib_count >= IMU_CALIB_SAMPLES) {
@@ -60,10 +81,12 @@ void InitCursors(IMUCursor *right_cursor, IMUCursor *left_cursor){
 }
 
 void UpdateCursorMovement(IMUCursor *cursor, Vector2 accel, float dt)
-{
+{   
+    Vector2 a = TransformImuAccel(accel);
+
     // Subtract bias and apply orientation correction
-    float ax = accel.x - cursor->bias.x;
-    float ay = -(accel.y - cursor->bias.y);  // Invert Y
+    float ax = a.x - cursor->bias.x;
+    float ay = -(a.y - cursor->bias.y);  // Screen Y up
     
     cursor->debug_ax = ax;
     cursor->debug_ay = ay;

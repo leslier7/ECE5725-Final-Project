@@ -152,6 +152,10 @@ void DrawEndingScreen(void)
     // Draw background
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), WHITE);
     
+    if (!right_cursor.calibrated && !left_cursor.calibrated) {
+        DrawText("Calibrating IMUs - Keep Still!", screenWidth / 2 - 150, 150, 20, MAROON);
+    }
+    
     char buffer[64];
     // Score counter
     int fontSize = 60;
@@ -170,6 +174,9 @@ void DrawEndingScreen(void)
     // Draw buttons
     DrawButton(&play_again_button);
     DrawButton(&quit_button);
+    
+    DrawCursor(&left_cursor);
+    DrawCursor(&right_cursor);
     }
 
 // Ending Screen Unload logic

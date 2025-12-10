@@ -191,11 +191,16 @@ void DrawTitleScreen(void)
     
     // Draw Title
     //DrawText("Fruit Ninja Clone!", screenWidth / 2 - 210, 70, 55, BLACK);
-    const char *title = "Fruit Ninja Clone!";
+    const char *title = "Fruit Samurai!";
     int fontSize = 55;
     int textWidth = MeasureText(title, fontSize);
     int x = (screenWidth - textWidth) / 2;
     DrawText(title, x, 70, fontSize, BLACK);
+    
+    const char *legal = "It's legally distinct!";
+    fontSize = 20;
+    DrawText(legal, x + 300, 70 + 60, fontSize, BLACK);
+    //DrawTextPro(font, legal, legalPos, origin, rotation, fontSize, spacing, BLACK);
     
     const char *how_to_play = "How to play:";
     fontSize = 20;
@@ -212,7 +217,13 @@ void DrawTitleScreen(void)
     DrawText(apple, 100, 220, fontSize, BLACK);
     
     const char *peach = "Peach = 2 points";
-    DrawText(peach, 100, 260, fontSize, BLACK);
+    DrawText(peach, 100, 280, fontSize, BLACK);
+    
+    const char *watermelon = "Watermelon = 1 point";
+    DrawText(watermelon, 100, 335, fontSize, BLACK);
+    
+    const char *bomb = "Bomb = Game over!";
+    DrawText(bomb, 100, 400, fontSize, BLACK);
 }
 
 // Title Screen Unload logic

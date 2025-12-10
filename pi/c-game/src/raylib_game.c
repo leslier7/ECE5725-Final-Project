@@ -133,7 +133,7 @@ int main(void)
 {
     // Initialization
     //---------------------------------------------------------
-    InitWindow(screenWidth, screenHeight, "test");
+    InitWindow(screenWidth, screenHeight, "Fruit Samurai");
     
     #ifdef _DEBUG
     printf("\nStarting game in debug mode");
