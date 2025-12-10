@@ -16,9 +16,28 @@ static const float ACCEL_DEADZONE    = 0.05f;
 static const float MAX_VEL           = 2500.0f;
 static const float HP_ALPHA          = 0.995f;
 
-void InitCursor(IMUCursor *cursor, Color color)
+static Vector2 TransformImuAccel(Vector2 raw)
 {
-    cursor->pos = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
+    // EXAMPLE: IMU rotated 90° clockwise relative to original
+    //   old_x -> -new_y
+    //   old_y ->  new_x
+    // Return (world_x, world_y)
+    return (Vector2){ -raw.y, raw.x };
+
+    // Other common cases (pick ONE and delete the rest):
+    // 180° rotation:
+    // return (Vector2){ -raw.x, -raw.y };
+    // 90° CCW:
+    // return (Vector2){ -raw.y, raw.x };
+    // flipped X only:
+    // return (Vector2){ -raw.x, raw.y };
+    // flipped Y only:
+    // return (Vector2){ raw.x, -raw.y };
+}
+
+void InitCursor(IMUCursor *cursor, Vector2 pos, Color color, const char *text)
+{
+    cursor->pos = pos;
     cursor->vel = (Vector2){0, 0};
     cursor->bias = (Vector2){0, 0};
     cursor->calib_accum = (Vector2){0, 0};
@@ -28,17 +47,20 @@ void InitCursor(IMUCursor *cursor, Color color)
     cursor->gravity_initialized = 0;
     cursor->debug_ax = cursor->debug_ay = 0;
     cursor->debug_linear_ax = cursor->debug_linear_ay = 0;
-    cursor->rad = 10;
+    cursor->rad = 20;
     cursor->color = color;
+    cursor->text = text; // Single char to tell which cursor this is
 }
 
 // Returns 1 if still calibrating, 0 if ready to process
 int UpdateCursorCalibration(IMUCursor *cursor, Vector2 accel)
-{
+{   
+    Vector2 a = TransformImuAccel(accel);
+
     if (cursor->calibrated) return 0;
     
-    cursor->calib_accum.x += accel.x;
-    cursor->calib_accum.y += accel.y;
+    cursor->calib_accum.x += a.x;
+    cursor->calib_accum.y += a.y;
     cursor->calib_count++;
     
     if (cursor->calib_count >= IMU_CALIB_SAMPLES) {
@@ -49,11 +71,22 @@ int UpdateCursorCalibration(IMUCursor *cursor, Vector2 accel)
     return 1; // Still calibrating
 }
 
+void InitCursors(IMUCursor *right_cursor, IMUCursor *left_cursor){
+    // Init cursors
+    Vector2 temp_pos = (Vector2){screenWidth/2 + 50, screenHeight/2};
+    InitCursor(right_cursor, temp_pos, PURPLE, "R");
+    
+    temp_pos = (Vector2){screenWidth/2 - 50, screenHeight/2};
+    InitCursor(left_cursor, temp_pos, BLUE, "L");
+}
+
 void UpdateCursorMovement(IMUCursor *cursor, Vector2 accel, float dt)
-{
+{   
+    Vector2 a = TransformImuAccel(accel);
+
     // Subtract bias and apply orientation correction
-    float ax = accel.x - cursor->bias.x;
-    float ay = -(accel.y - cursor->bias.y);  // Invert Y
+    float ax = (a.x - cursor->bias.x);
+    float ay = -(a.y - cursor->bias.y);  // Screen Y up
     
     cursor->debug_ax = ax;
     cursor->debug_ay = ay;
@@ -107,12 +140,13 @@ void UpdateCursorMovement(IMUCursor *cursor, Vector2 accel, float dt)
     if (cursor->pos.y > GetScreenHeight()) { cursor->pos.y = GetScreenHeight(); cursor->vel.y = 0; }
 }
 
-void ResetCursor(IMUCursor *cursor)
+void ResetCursor(IMUCursor *cursor, Vector2 pos)
 {
-    cursor->pos = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
+    cursor->pos = pos;
     cursor->vel = (Vector2){0, 0};
 }
 
 void DrawCursor(IMUCursor *cursor){
     DrawCircleV(cursor->pos, cursor->rad, cursor->color);
+    DrawText(cursor->text, cursor->pos.x-5, cursor->pos.y-5, 15, BLACK);
 }

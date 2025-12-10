@@ -17,6 +17,7 @@
 #include "dongleparse.h"
 #include <stdio.h>
 #include <pthread.h>
+#include <time.h>
 
 pthread_t dongle_thread;
 pthread_mutex_t pkt_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -42,6 +43,8 @@ struct dp_packet right_pkt, left_pkt;
 int right_button_events = 0;
 int left_button_events  = 0;
 
+bool playing = true;
+
 //----------------------------------------------------------------------------------
 // Global Variables Definition (local to this module)
 //----------------------------------------------------------------------------------
@@ -52,6 +55,12 @@ static bool onTransition = false;
 static bool transFadeOut = false;
 static int transFromScreen = -1;
 static GameScreen transToScreen = UNKNOWN;
+
+bool right_connected = true;
+bool left_connected =true;
+
+static time_t prev_time_r;
+static time_t prev_time_l;
 
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
@@ -69,6 +78,10 @@ static void *dongle_thread_fn(void *arg)
 {
     int fd = *(int*)arg;
     struct dp_packet pkt;
+    
+    int prev_seq_r = 0;
+    int prev_seq_l = 0;
+    
     while (dongle_thread_run) {
         int r = dp_read_packet(fd, &pkt);
         if (r == 1) {
@@ -80,10 +93,14 @@ static void *dongle_thread_fn(void *arg)
             switch (pkt.pipe) {
                 case 1:
                     right_pkt = pkt;
+                    prev_seq_r = pkt.seq;
+                    prev_time_r = time(NULL);
                     if (pkt.button) right_button_events++;
                     break;
                 case 2:
                     left_pkt = pkt;
+                    prev_seq_l = pkt.seq;
+                    prev_time_l = time(NULL);
                     if (pkt.button) left_button_events++;
                     break;
                 default: break;
@@ -96,6 +113,15 @@ static void *dongle_thread_fn(void *arg)
             // error -> optionally sleep then retry
             //usleep(10000);
         }
+        
+        //Determine if the controllers are connected
+        time_t now = time(NULL);
+        if (now - prev_time_r > 3) { // Longer than 3 seconds since last right packet
+            printf("Right controller not connected\n");
+        }
+        if (now - prev_time_l > 3) { // Longer than 3 seconds since last left packet
+            printf("Left controller not connected\n");
+        }
     }
     return NULL;
 }
@@ -107,16 +133,11 @@ int main(void)
 {
     // Initialization
     //---------------------------------------------------------
-    InitWindow(screenWidth, screenHeight, "test");
-
-    // Set up dongle reader
-    int dongle = dp_open("/dev/ttyACM0", 115200);
-    if (dongle < 0) {
-        printf("\nUnable to connect to dongle");
-        return 1;
-    }
+    InitWindow(screenWidth, screenHeight, "Fruit Samurai");
     
-    
+    #ifdef _DEBUG
+    printf("\nStarting game in debug mode");
+    #endif
 
     InitAudioDevice();      // Initialize audio device
 
@@ -129,9 +150,10 @@ int main(void)
     //PlayMusicStream(music);
 
     // Setup and init first screen
-    currentScreen = GAMEPLAY;
-    InitGameplayScreen();
-    //InitLogoScreen();
+    currentScreen = LOGO;
+    //InitTitleScreen();
+    //InitGameplayScreen();
+    InitLogoScreen();
 
 
 #if defined(PLATFORM_WEB)
@@ -139,7 +161,26 @@ int main(void)
 #else
     SetTargetFPS(60);       // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
-
+    
+    
+    // Set up dongle reader
+    
+    bool dongle_init = FileExists("/dev/ttyACM0");
+    
+    while(!dongle_init && !WindowShouldClose()){
+        dongle_init = FileExists("/dev/ttyACM0");
+        BeginDrawing();
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), WHITE);
+        DrawText("Dongle not plugged in. Please plug in dongle!", 15, screenHeight/2, 35, BLACK);
+        EndDrawing();
+    }
+    
+    int dongle = dp_open("/dev/ttyACM0", 115200);
+    if (dongle < 0) {
+        printf("\nUnable to connect to dongle");
+        return 1;
+    }
+    
      // start reader thread (pass fd by value)
     int dongle_fd = dongle;
     if (pthread_create(&dongle_thread, NULL, dongle_thread_fn, &dongle_fd) != 0) {
@@ -147,28 +188,42 @@ int main(void)
         dp_close(dongle);
         return 1;
     }
-
+    
+    local_high_score = 0;
+    
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!WindowShouldClose() && playing)    // Detect window close button or ESC key
     {
-        // if(dp_read_packet(dongle, &dongle_pkt) != 1){
-        //     printf("\nDongle read error");
-        // } else {
-        //     //printf("\n");
-        //     printf("\nseq=%u pipe=%u button=%u", dongle_pkt.seq, dongle_pkt.pipe, dongle_pkt.button);
-        //     //printf("\naccel x: %f y: %f z: %f   |   gyro x: %f y: %f z: %f", dongle_pkt.accel.x, dongle_pkt.accel.y, dongle_pkt.accel.z, dongle_pkt.gyro.x, dongle_pkt.gyro.y, dongle_pkt.gyro.z);
-        //     switch(dongle_pkt.pipe){
-        //         case 1:
-        //             right_pkt = dongle_pkt;
-        //             break;
-        //         case 2:
-        //             left_pkt = dongle_pkt;
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        // }
 
+        time_t now = time(NULL);
+        pthread_mutex_lock(&pkt_mutex);
+        time_t last_r = prev_time_r;
+        time_t last_l = prev_time_l;
+        pthread_mutex_unlock(&pkt_mutex);
+
+        if (last_r == 0 || now - last_r > 3) {
+            if (right_connected) {
+                printf("Right controller not connected\n");
+                right_connected = false;
+            }
+        } else {
+            if (!right_connected) {
+                printf("Right controller connected\n");
+                right_connected = true;
+            }
+        }
+
+        if (last_l == 0 || now - last_l > 3) {
+            if (left_connected) {
+                printf("Left controller not connected\n");
+                left_connected = false;
+            }
+        } else {
+            if (!left_connected) {
+                printf("Left controller connected\n");
+                left_connected = true;
+            }
+        }
 
         UpdateDrawFrame();
 
@@ -355,7 +410,7 @@ static void UpdateDrawFrame(void)
             {
                 UpdateEndingScreen();
 
-                if (FinishEndingScreen() == 1) TransitionToScreen(TITLE);
+                if (FinishEndingScreen() == 1) TransitionToScreen(GAMEPLAY);
 
             } break;
             default: break;
