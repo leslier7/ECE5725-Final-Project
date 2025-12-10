@@ -43,6 +43,8 @@ struct dp_packet right_pkt, left_pkt;
 int right_button_events = 0;
 int left_button_events  = 0;
 
+bool playing = true;
+
 //----------------------------------------------------------------------------------
 // Global Variables Definition (local to this module)
 //----------------------------------------------------------------------------------
@@ -186,9 +188,11 @@ int main(void)
         dp_close(dongle);
         return 1;
     }
-
+    
+    local_high_score = 0;
+    
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!WindowShouldClose() && playing)    // Detect window close button or ESC key
     {
 
         time_t now = time(NULL);

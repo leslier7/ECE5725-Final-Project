@@ -27,6 +27,7 @@
 #include "screens.h"
 #include "imu_cursor.h"
 #include "button.h"
+#include "fruit.h"
 #include <stdio.h>
 #include <math.h>
 #include <pthread.h>
@@ -44,12 +45,15 @@ static IMUCursor left_cursor;
 
 // Buttons
 static Button start_button;
-//TODO add quit button
+static Button quit_button;
 
 extern pthread_mutex_t pkt_mutex;
 extern struct dp_packet right_pkt;
 extern struct dp_packet left_pkt;  // Add this extern
 static int events = 0;
+
+// Fruits for how to play
+static Fruit demo_fruits[FRUIT_TYPE_COUNT];
 
 //----------------------------------------------------------------------------------
 // Title Screen Functions Definition
@@ -71,6 +75,24 @@ void InitTitleScreen(void)
     // Init buttons
     Rectangle temp_rect = (Rectangle){screenWidth/2, screenHeight/2 + 130, 150, 80};
     InitButton(&start_button, temp_rect, BLUE, RED, "Start");
+    
+    temp_rect = (Rectangle){screenWidth/2 + 250, screenHeight/2 + 130, 200, 80};
+    InitButton(&quit_button, temp_rect, RED, BLUE, "Quit");
+    
+    //Init demo fruits
+    Vector2 pos = (Vector2){50, 230 + FRUIT_DEFS[0].radius};  // center of first fruit
+    Vector2 vel = (Vector2){0,0};
+    const float padding = 8.0f;  // constant gap between fruits
+
+    for (int i = 0; i < FRUIT_TYPE_COUNT; i++) {
+        if (i > 0) {
+            float rPrev = FRUIT_DEFS[i - 1].radius;
+            float rThis = FRUIT_DEFS[i].radius;
+            // move down by previous radius + this radius + padding
+            pos.y += rPrev + rThis + padding;
+        }
+        InitFruitDebug(&demo_fruits[i], i, pos, vel);
+    }
 }
 
 // Title Screen Update logic
@@ -123,6 +145,15 @@ void UpdateTitleScreen(void)
     
     bool start_game = start_game_r || start_game_l;
     
+    bool quit_r = IsButtonPressed(&quit_button, right_cursor.pos, imu_button_pressed);
+    bool quit_l = IsButtonPressed(&quit_button, left_cursor.pos, imu_button_pressed);
+    
+    bool quit = quit_l || quit_r;
+    
+    if(quit){
+        playing = false;
+    }
+    
     // Press start button or press enter
     if (IsKeyPressed(KEY_ENTER) || start_game)
     {
@@ -140,6 +171,7 @@ void DrawTitleScreen(void)
     
     // Draw Buttons
     DrawButton(&start_button);
+    DrawButton(&quit_button);
     
     if(right_connected && left_connected){
         if (!right_cursor.calibrated && !left_cursor.calibrated) {
@@ -164,6 +196,23 @@ void DrawTitleScreen(void)
     int textWidth = MeasureText(title, fontSize);
     int x = (screenWidth - textWidth) / 2;
     DrawText(title, x, 70, fontSize, BLACK);
+    
+    const char *how_to_play = "How to play:";
+    fontSize = 20;
+    textWidth = MeasureText(title, fontSize);
+    DrawText(how_to_play, 20, 190, fontSize, BLACK);
+    
+    // draw demo fruits
+    for(int i = 0; i < FRUIT_TYPE_COUNT; i++){
+        DrawFruit(&demo_fruits[i]);
+    }
+    
+    // Draw tutorial text
+    const char *apple = "Apple = 3 points";
+    DrawText(apple, 100, 220, fontSize, BLACK);
+    
+    const char *peach = "Peach = 2 points";
+    DrawText(peach, 100, 260, fontSize, BLACK);
 }
 
 // Title Screen Unload logic

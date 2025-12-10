@@ -17,10 +17,10 @@ static const float Y_VEL_HIGH = 700.0; // 700
 static const float g = 600;
 
 const FruitDef FRUIT_DEFS[] = {
-    [APPLE]      = { .radius = 15, .color = RED },
-    [WATERMELON] = { .radius = 35, .color = GREEN },
-    [PEACH]      = { .radius = 20, .color = ORANGE },
-    [BOMB]       = { .radius = 25, .color = BLACK},
+    [APPLE]      = { .radius = 15, .color = RED, .score = 3 },
+    [WATERMELON] = { .radius = 35, .color = GREEN, .score = 1 },
+    [PEACH]      = { .radius = 20, .color = ORANGE, .score = 2 },
+    [BOMB]       = { .radius = 25, .color = BLACK, .score = -1 },
 };
 
 static float randFloatInRange(float low, float high){

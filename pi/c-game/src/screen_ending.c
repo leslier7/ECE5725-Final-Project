@@ -31,6 +31,11 @@
 #include <pthread.h>
 
 //----------------------------------------------------------------------------------
+// Global variable definitions
+//----------------------------------------------------------------------------------
+int local_high_score;
+
+//----------------------------------------------------------------------------------
 // Module Variables Definition (local)
 //----------------------------------------------------------------------------------
 static int framesCounter = 0;
@@ -42,7 +47,7 @@ static IMUCursor left_cursor;
 
 //Buttons
 static Button play_again_button;
-//TODO add quit button
+static Button quit_button;
 
 extern pthread_mutex_t pkt_mutex;
 extern struct dp_packet right_pkt;
@@ -63,8 +68,15 @@ void InitEndingScreen(void)
     Rectangle temp_rect = (Rectangle){screenWidth/2, screenHeight/2 + 130, 200, 80};
     InitButton(&play_again_button, temp_rect, BLUE, RED, "Play Again");
     
+    temp_rect = (Rectangle){screenWidth/2 + 250, screenHeight/2 + 130, 200, 80};
+    InitButton(&quit_button, temp_rect, RED, BLUE, "Quit");
+    
     //Init cursors
     InitCursors(&right_cursor, &left_cursor);
+    
+    if(score > local_high_score){
+        local_high_score = score;
+    }
 }
 
 // Ending Screen Update logic
@@ -116,6 +128,15 @@ void UpdateEndingScreen(void)
     
     bool play_again = play_again_l || play_again_r;
     
+    bool quit_r = IsButtonPressed(&quit_button, right_cursor.pos, imu_button_pressed);
+    bool quit_l = IsButtonPressed(&quit_button, left_cursor.pos, imu_button_pressed);
+    
+    bool quit = quit_l || quit_r;
+    
+    if(quit){
+        playing = false;
+    }
+    
     // Press enter or tap to return to TITLE screen
     // IsGestureDetected(GESTURE_TAP)
     if (IsKeyPressed(KEY_ENTER) || play_again)
@@ -139,9 +160,17 @@ void DrawEndingScreen(void)
     int x = (screenWidth - textWidth) / 2;
     DrawText(buffer, x, 100, fontSize, BLACK);
     
+    // local high score counter
+    fontSize = 30;
+    sprintf(buffer, "Local High Score: %d", local_high_score);
+    textWidth = MeasureText(buffer, fontSize);
+    x = (screenWidth - textWidth) / 2;
+    DrawText(buffer, x, 170, fontSize, BLACK);
+    
     // Draw buttons
     DrawButton(&play_again_button);
-}
+    DrawButton(&quit_button);
+    }
 
 // Ending Screen Unload logic
 void UnloadEndingScreen(void)

@@ -8,8 +8,8 @@
 
 typedef enum {
     APPLE,
-    WATERMELON,
     PEACH,
+    WATERMELON,
     BOMB,
     FRUIT_TYPE_COUNT
 } FruitType;
@@ -17,6 +17,7 @@ typedef enum {
 typedef struct {
     int radius;
     Color color;
+    int score;
 } FruitDef;
 
 typedef struct {
