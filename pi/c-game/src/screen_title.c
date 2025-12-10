@@ -50,7 +50,8 @@ static Button quit_button;
 extern pthread_mutex_t pkt_mutex;
 extern struct dp_packet right_pkt;
 extern struct dp_packet left_pkt;  // Add this extern
-static int events = 0;
+static int right_events = 0;
+static int left_events = 0;
 
 // Fruits for how to play
 static Fruit demo_fruits[FRUIT_TYPE_COUNT];
@@ -103,8 +104,10 @@ void UpdateTitleScreen(void)
     pthread_mutex_lock(&pkt_mutex);
     right_local = right_pkt;
     left_local = left_pkt;
-    events = right_button_events;
+    right_events += right_button_events;
     right_button_events = 0;
+    left_events += left_button_events;
+    left_button_events = 0;
     pthread_mutex_unlock(&pkt_mutex);
     
     float dt = GetFrameTime();
@@ -128,25 +131,30 @@ void UpdateTitleScreen(void)
     #ifdef _DEBUG
     left_cursor.pos = GetMousePosition();
     if(IsGestureDetected(GESTURE_TAP)){
-        events++;
+        left_events++;
     }
     #endif
     
-    //TODO rethink button press
-    bool imu_button_pressed = false;
-    if(events > 0){
-        imu_button_pressed = true;
-        events--;
+    bool right_pressed = false;
+    if(right_events > 0){
+        right_pressed = true;
+        right_events--;
     }
     
-    bool start_game_r = IsButtonPressed(&start_button, right_cursor.pos, imu_button_pressed);
+    bool left_pressed = false;
+    if(left_events > 0){
+        left_pressed = true;
+        left_events--;
+    }
     
-    bool start_game_l = IsButtonPressed(&start_button, left_cursor.pos, imu_button_pressed);
+    bool start_game_r = IsButtonPressed(&start_button, right_cursor.pos, right_pressed);
+    
+    bool start_game_l = IsButtonPressed(&start_button, left_cursor.pos, left_pressed);
     
     bool start_game = start_game_r || start_game_l;
     
-    bool quit_r = IsButtonPressed(&quit_button, right_cursor.pos, imu_button_pressed);
-    bool quit_l = IsButtonPressed(&quit_button, left_cursor.pos, imu_button_pressed);
+    bool quit_r = IsButtonPressed(&quit_button, right_cursor.pos, right_pressed);
+    bool quit_l = IsButtonPressed(&quit_button, left_cursor.pos, left_pressed);
     
     bool quit = quit_l || quit_r;
     
@@ -214,7 +222,7 @@ void DrawTitleScreen(void)
     
     // Draw tutorial text
     const char *apple = "Apple = 3 points";
-    DrawText(apple, 100, 220, fontSize, BLACK);
+    DrawText(apple, 100, 235, fontSize, BLACK);
     
     const char *peach = "Peach = 2 points";
     DrawText(peach, 100, 280, fontSize, BLACK);

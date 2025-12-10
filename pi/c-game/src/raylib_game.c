@@ -150,10 +150,10 @@ int main(void)
     //PlayMusicStream(music);
 
     // Setup and init first screen
-    currentScreen = TITLE;
-    InitTitleScreen();
+    currentScreen = LOGO;
+    //InitTitleScreen();
     //InitGameplayScreen();
-    //InitLogoScreen();
+    InitLogoScreen();
 
 
 #if defined(PLATFORM_WEB)

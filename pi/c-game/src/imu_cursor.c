@@ -85,7 +85,7 @@ void UpdateCursorMovement(IMUCursor *cursor, Vector2 accel, float dt)
     Vector2 a = TransformImuAccel(accel);
 
     // Subtract bias and apply orientation correction
-    float ax = a.x - cursor->bias.x;
+    float ax = (a.x - cursor->bias.x);
     float ay = -(a.y - cursor->bias.y);  // Screen Y up
     
     cursor->debug_ax = ax;

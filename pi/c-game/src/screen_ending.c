@@ -52,7 +52,8 @@ static Button quit_button;
 extern pthread_mutex_t pkt_mutex;
 extern struct dp_packet right_pkt;
 extern struct dp_packet left_pkt;  // Add this extern
-static int events = 0;
+static int right_events = 0;
+static int left_events = 0;
 
 //----------------------------------------------------------------------------------
 // Ending Screen Functions Definition
@@ -87,8 +88,10 @@ void UpdateEndingScreen(void)
     pthread_mutex_lock(&pkt_mutex);
     right_local = right_pkt;
     left_local = left_pkt;
-    events = right_button_events;
+    right_events += right_button_events;
     right_button_events = 0;
+    left_events += left_button_events;
+    left_button_events = 0;
     pthread_mutex_unlock(&pkt_mutex);
     
     float dt = GetFrameTime();
@@ -112,24 +115,29 @@ void UpdateEndingScreen(void)
     #ifdef _DEBUG
     left_cursor.pos = GetMousePosition();
     if(IsGestureDetected(GESTURE_TAP)){
-        events++;
+        left_events++;
     }
     #endif
     
-    //TODO rethink button press
-    bool imu_button_pressed = false;
-    if(events > 0){
-        imu_button_pressed = true;
-        events--;
+    bool right_pressed = false;
+    if(right_events > 0){
+        right_pressed = true;
+        right_events--;
     }
     
-    bool play_again_r = IsButtonPressed(&play_again_button, right_cursor.pos, imu_button_pressed);
-    bool play_again_l = IsButtonPressed(&play_again_button, left_cursor.pos, imu_button_pressed);
+    bool left_pressed = false;
+    if(left_events > 0){
+        left_pressed = true;
+        left_events--;
+    }
+    
+    bool play_again_r = IsButtonPressed(&play_again_button, right_cursor.pos, right_pressed);
+    bool play_again_l = IsButtonPressed(&play_again_button, left_cursor.pos, left_pressed);
     
     bool play_again = play_again_l || play_again_r;
     
-    bool quit_r = IsButtonPressed(&quit_button, right_cursor.pos, imu_button_pressed);
-    bool quit_l = IsButtonPressed(&quit_button, left_cursor.pos, imu_button_pressed);
+    bool quit_r = IsButtonPressed(&quit_button, right_cursor.pos, right_pressed);
+    bool quit_l = IsButtonPressed(&quit_button, left_cursor.pos, left_pressed);
     
     bool quit = quit_l || quit_r;
     
