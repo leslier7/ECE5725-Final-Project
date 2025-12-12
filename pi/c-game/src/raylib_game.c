@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <time.h>
+#include <unistd.h>
 
 pthread_t dongle_thread;
 pthread_mutex_t pkt_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -175,6 +176,9 @@ int main(void)
         EndDrawing();
     }
     
+    // Sleep to give dongle time to connect
+    sleep(1);
+    
     int dongle = dp_open("/dev/ttyACM0", 115200);
     if (dongle < 0) {
         printf("\nUnable to connect to dongle");
@@ -245,14 +249,18 @@ int main(void)
 
     // shutdown: stop thread, close fd to unblock read, join
     dongle_thread_run = 0;
-    dp_close(dongle);               // causes dp_read_packet to return / unblock
+
+    pthread_cancel(dongle_thread);
     pthread_join(dongle_thread, NULL);
+
+    dp_close(dongle);               // causes dp_read_packet to return / unblock
     pthread_mutex_destroy(&pkt_mutex);
+    
 
     // Unload global data loaded
     UnloadFont(font);
-    UnloadMusicStream(music);
-    UnloadSound(fxCoin);
+    //UnloadMusicStream(music);
+    //UnloadSound(fxCoin);
 
     CloseAudioDevice();     // Close audio context
 
