@@ -90,7 +90,7 @@
             </div>
             <div class="header-detail">
               <p class="header-detail__label">Submission Date</p>
-              <p class="header-detail__value">December 11, 2025</p>
+              <p class="header-detail__value">December 12, 2025</p>
             </div>
             
           </div>
@@ -111,6 +111,7 @@
               <h2>Introduction</h2>
               <p style="text-align: left;padding: 0px 30px;">In ECE5725, we explored many ways to use the Raspberry Pi for hardware-software integration, but our interactions with the system remained limited. Most operations relied on keyboards, mice, or prewritten scripts, offering little in terms of intuitive, real-time control.</p>
               <p style="text-align: left;padding: 0px 30px;">In everyday life, our hands are the primary tools for interacting with the physical world—whether driving, eating, gaming, or performing fine-grained tasks. Motivated by this observation, we set out to design a more natural and expressive interface for the Raspberry Pi. Our project introduces a dual-mode unified gesture-control system that allows users to control different applications simply by wearing a sensor-enabled glove.</p>
+              <p style="text-align: left;padding: 0px 30px;">We wanted to make sure that both of our modes would demonstrate the strengths of embedded systems. This meant having both a strong graphical component to show the power of the Linux desktop, as well as a hardware component. We decided to build a game and a robot that would utilize our gloves as the control method.</p>
       </div>
 
     <hr id='obj'>
@@ -127,7 +128,7 @@
                   <li>Build a reliable wireless communication channel between the gesture glove and the Raspberry Pi.</li>
                   <li>Stabilize IMU motion data through real-time filtering so the glove behaves more like a controller and less like a jittery sensor.</li>
                   <li>Map hand gestures to continuous motor commands for smooth and intuitive robot navigation.</li>
-                  <li>Reuse the same gesture signals to control a Raylib-based “Fruit Samurai” slicing game, unifying physical and virtual interaction modes.</li>
+                  <li>Use the IMU accelerometer to control two cursors in a video game built with C and Raylib.</li>
               </ul>
           </div>
       </div>
@@ -139,8 +140,12 @@
               <div class="design-sections">
                   <div class="design-section">
                       <h3><span>1</span> Milestone 1 — IMU ↔ Dongle Communication</h3>
-                      <p>The first major checkpoint was establishing a reliable data path between the IMU and our wireless dongle. We powered the IMU over USB-C and connected the dongle to a laptop for rapid debugging, letting us inspect raw orientation packets in real time. Achieving this stable pipeline was essential because both downstream components—motor control and the Raylib game—depend on timely motion readings.</p>
-                      <p>Once packets looked correct, Shiqi and Robbie split their development tracks. Shiqi owned the Python-based motor interface, while Robbie moved to the C/Raylib environment required for the slicing game.</p>
+                      <p>The first major checkpoint was establishing a reliable data path between the IMU and our wireless dongle. We powered the microcontroller with the IMU over USB-C and connected the dongle to a laptop for rapid debugging. Once we had confirmed that the microcontroller and dongle were communicating correctly, we had to then have the dongle talk to the Pi. This was done using Serial, and we build readers in both C any Python since we used both languages.</p>
+                      <p>There were multiple ways that we could have had a microcontroller communicate with the Pi. Two of the most popular are WiFi and Bluetooth. If we chose WiFi, we would have had a microcontroller connect to a network, and then used UDP to steam data packets from the microcontroller to the Pi. This would have been fast enough, and is well documented. However, it would require conencting the microcontroller to a network, and university managed networks are notorious for having limitations which make it difficult to communicate.</p>
+                      <p>Bluetooth is a widely used low-power 2.4GHz communication protocol used to stream data. It would have met most of our design requirments, except it can have higher latancy. But the main reason that we choose not to use Bluetooth is ease of development. The Bluetooth protocol is a bit messy, which makes it hard to devleop for. It is well documented, but still can be fiddly.</p>
+                      <p>To solve both the latency problem, and the ease of development, we looked into using direct 2.4GHz communication with a dongle. This technique is often used with wireless gaming mice. During our research, we found out about Nordic Semiconductor's Enhanced ShockBurst (ESB). This protocol is used for low latency 2.4GHz communication between one recievcer and up to eight transmitters. It is enabled on the nRF52 series of microcontrollers.</p>
+                      <p>And what sealed the deal was the XIAO nRF52840 Sense board with an integrated LSM6DSO 6-axis IMU. Having the IMU built into the microcontroller development board would save us from having two different PCBs attached to the gloves. It also has a built in battery charge circuit, so we would just need to connect a battery and it would be able to charge it over USB-C through the micrcontroller board. Then to connect to the Pi, we could get the nRF52840 Dongle, which is designed for applications like being a reciever over USB. Using this combiation also meant that we got to try using Zephyr, a popular Real-Time Operating System for microcontrollers.</p>
+                      <p>Once the microcontroller to Pi communication was complete, Shiqi and Robbie split their development tracks. Shiqi owned the Python-based motor interface, while Robbie moved to the C/Raylib environment required for the slicing game.</p>
                   </div>
                   <div class="design-section">
                       <h3><span>2</span> Milestone 2 — Motor-Control Development</h3>
@@ -148,8 +153,10 @@
                       <p><strong>Gesture-to-motor mapping.</strong> After assembling the robot platform, Shiqi implemented the mapping from filtered IMU orientation to forward and turning commands. During this stage, the team switched from the Lab 3 DC motor to a Parallax Feedback 360° high-speed servo, which offered stronger and more consistent motion. Several tuning rounds ensured that hand tilts translate into smooth, intuitive robot movement.</p>
                   </div>
                   <div class="design-section">
-                      <h3><span>3</span> Milestone 3 — Game Interaction Development</h3>
-                      <p>(Robbie will complete this section. A placeholder description can temporarily remain here.)</p>
+                      <h3><span>3</span> Milestone 3 — Game Development</h3>
+                      <p><strong>Game Template.</strong> To start off developemnt, Robbie chose to use Raylib with C. For the class, we have learned PyGame with Python. Robbie chose to use Raylib and C for a few reasons. The first is a personal preference for C over Python. The second is that he has a bit of experience in Raylib from building a game for a game jam with Raylib and Odin. But the third and most important reason is performance. Python is an interpreted language, which means that is very slow compared to a compiled language like C. Real game developers mostly use C++ to avoid the overhead that comes from inperpreted languages. C was chosen over C++ mostly because of familiarity. To get started, Raylib has an offical C template which contains example code for how to have different screens, and set up a Raylib project. </p>
+                      <p><strong>Control Implementation.</strong> With the template in place, the next task was to get the cursors working. This meant reading the IMU data from the dongle, and using it to change the position of the cursor. In order to do that, Robbie developed the algorithm to try and convert the acceleration data into position via double integration. To get proper measurements, the IMUs are calibrated to try and remove any bias they have. Then, we try to filter out gravity so the acceleration is only from movement, this is partially done using a high-pass filter. A deadzone is also applied to get rid of very small movements. Next, the acceleration is integrated to get the velocity. The velocity is damped, clamped, and another deadzone is applied before it is finally integrated to get the position. The results were inconsistent, but good enough to move on to the next parts of development.</p>
+                      <p><strong>Gameplay.</strong> With cursors working, it was finally time to add the fruits to the game. Three fruits were added with various sizes, as well as a bomb. The smaller the fruit, the higher the points that were scored for slicing it. Touching a bomb would cause a game over. In order to make testing easier, a debug mode was added where the mouse would act like the left cursor instead of IMU data. With the basic gameplay in place, all that was left was to polish the game by adding buttons, a start and end screen, and the abiltiy to replay the game. A local high score system was also added which keeps track of the best score since the game has been launched. This local high score is only stored in the game, so closing the game resets the high score. We planned on adding a global high score by saving the scores in a file, however this was cut due to time constraints.</p>
                   </div>
               </div>
       </div>
@@ -209,21 +216,30 @@
       <div style="font-size:18px">
           <h2>Parts List</h2>
           <ul>
-              <li>Raspberry Pi $35.00</li>
-              <li>Raspberry Pi Camera V2 $25.00</li>
-              <a href="https://www.adafruit.com/product/1463"><li>NeoPixel Ring - $9.95</li></a>
-              <li>LEDs, Resistors and Wires - Provided in lab</li>
+              <li>Raspberry Pi Model 4B with 2GB RAM - $45.00 (included in lab materials)</li>
+              <a href="https://www.digikey.com/en/products/detail/seeed-technology-co-ltd/102010469/16652896"><li>2x Seeed Studio XIAO nRF52840 Plus - $31.98</li></a>
+              <a href="https://www.digikey.com/en/products/detail/nordic-semiconductor-asa/NRF52840-DONGLE/9491124"><li>nRF52840 Dongle - $10.00</li></a>
+              <a href="https://www.adafruit.com/product/2011"><li>2x 3.7V 1200mAh LiPo Battery - $19.90 (found in lab)</li></a>
+              <li>2x Buttons - Found in Robbie's spare parts drawer</li>
+              <li>TODO add motors - TODO</li>
           </ul>
-          <h3>Total: $69.95</h3>
+          <h3>Total: $TODO</h3>
       </div>
       <hr id='references'>
       <div style="font-size:18px">
           <h2>References</h2>
-          <a href="https://picamera.readthedocs.io/">PiCamera Document</a><br>
           <a href="http://www.micropik.com/PDF/SG90Servo.pdf">Tower Pro Servo Datasheet</a><br>
           <a href="http://getbootstrap.com/">Bootstrap</a><br>
           <a href="http://abyz.co.uk/rpi/pigpio/">Pigpio Library</a><br>
           <a href="https://sourceforge.net/p/raspberry-gpio-python/wiki/Home/">R-Pi GPIO Document</a><br>
+          <a href="https://www.raylib.com/">Raylib</a><br>
+          <a href="https://www.raylib.com/cheatsheet/cheatsheet.html">Raylib Cheatsheet</a><br>
+          <a href="https://github.com/raysan5/raylib-game-template">Raylib C Template</a><br>
+          <a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/protocols/esb/index.html">nRF Enhanced ShockBurst Documentation</a><br>
+          <a href="https://github.com/nrfconnect/sdk-nrf/tree/v3.1.0/samples">nRF Samples</a><br>
+          <a href="https://github.com/nrfconnect/sdk-nrf/tree/v3.1.0/samples/esb">nRF ESB Samples</a><br>
+          <a href="https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/sensor/lsm6dso">Zephyr LSM6DSO Example</a><br>
+          
 
       </div>
 
