@@ -1,0 +1,256 @@
+<!-- Bootstrap core CSS -->
+ <!-- 1. write subsections for Design (for the formatting the section) -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Starter Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&family=Merriweather:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!-- <link href="../../assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet"> -->
+
+    <!-- Custom styles for this template -->
+    <link href="starter-template.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <!-- <script src="../../assets/js/ie-emulation-modes-warning.js"></script> -->
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Project name</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#header">Header</a></li>
+            <li><a href="#intro">Introduction</a></li>
+            <li><a href="#obj">Project Objective</a></li>
+            <li><a href="#video">Project Video</a></li>
+            <li><a href="#design-testing">Design &amp; Testing</a></li>
+            <li><a href="#result">Results</a></li>
+            <li><a href="#conclusion">Conclusions</a></li>
+            <li><a href="#future">Future Work</a></li>
+            <li><a href="#figures">Figures &amp; Media</a></li>
+            <li><a href="#team">Team Contributions</a></li>
+            <li><a href="#parts">Parts List</a></li>
+            <li><a href="#references">References</a></li>
+            <li><a href="#code">Code Appendix</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container page-content">
+
+      <section class="header-panel" id="header">
+        <div class="header-panel__intro">
+          <h1>Dual-Mode Gesture Control:<br>A Unified Interface for Robot and Game Interaction</h1>
+          <p class="lead">ECE5725 Final Project</p>
+        </div>
+        <div class="header-panel__details">
+          <div class="header-details-grid">
+            <div class="header-detail">
+              <p class="header-detail__label">Team Members</p>
+              <ul class="header-detail-list">
+                <li>Robbie Leslie (rwl228)</li>
+                <li>Shiqi Liu (sl3646)</li>
+              </ul>
+            </div>
+            <div class="header-detail">
+              <p class="header-detail__label">Advisor</p>
+              <p class="header-detail__value">Dr. Danna Ma</p>
+            </div>
+            <div class="header-detail">
+              <p class="header-detail__label">Submission Date</p>
+              <p class="header-detail__value">December 11, 2025</p>
+            </div>
+            
+          </div>
+        </div>
+      </section>
+
+      <hr id="video">
+
+      <div class="center-block" style="text-align:center;">
+          <h2>Project Video</h2>
+          <iframe width="640" height="360" src="https://www.youtube.com/watch?v=et91Gea6CPk" frameborder="0" allowfullscreen></iframe>
+          <p style="margin-top:10px;">Demonstration clip highlighting the system in action.</p>
+      </div>
+
+      <hr id="intro">
+
+      <div style="text-align:center;">
+              <h2>Introduction</h2>
+              <p style="text-align: left;padding: 0px 30px;">In ECE5725, we explored many ways to use the Raspberry Pi for hardware-software integration, but our interactions with the system remained limited. Most operations relied on keyboards, mice, or prewritten scripts, offering little in terms of intuitive, real-time control.</p>
+              <p style="text-align: left;padding: 0px 30px;">In everyday life, our hands are the primary tools for interacting with the physical world—whether driving, eating, gaming, or performing fine-grained tasks. Motivated by this observation, we set out to design a more natural and expressive interface for the Raspberry Pi. Our project introduces a dual-mode unified gesture-control system that allows users to control different applications simply by wearing a sensor-enabled glove.</p>
+      </div>
+
+    <hr id='obj'>
+
+      <div style="text-align:center;">
+          <h2>Project Objective (Will make a new fig)</h2>
+      </div>
+      <div class="project-objective">
+          <div class="project-objective__image">
+              <img class="img-rounded" src="pics/systemStructure.png" alt="Generic placeholder image" width="360" height="240">
+          </div>
+          <div class="project-objective__content">
+              <ul class="objective-list">
+                  <li>Build a reliable wireless communication channel between the gesture glove and the Raspberry Pi.</li>
+                  <li>Stabilize IMU motion data through real-time filtering so the glove behaves more like a controller and less like a jittery sensor.</li>
+                  <li>Map hand gestures to continuous motor commands for smooth and intuitive robot navigation.</li>
+                  <li>Reuse the same gesture signals to control a Raylib-based “Fruit Samurai” slicing game, unifying physical and virtual interaction modes.</li>
+              </ul>
+          </div>
+      </div>
+
+    <hr id='design-testing'>
+
+      <div style="text-align:center;">
+              <h2>Key Design Milestones</h2>
+              <div class="design-sections">
+                  <div class="design-section">
+                      <h3><span>1</span> Milestone 1 — IMU ↔ Dongle Communication</h3>
+                      <p>The first major checkpoint was establishing a reliable data path between the IMU and our wireless dongle. We powered the IMU over USB-C and connected the dongle to a laptop for rapid debugging, letting us inspect raw orientation packets in real time. Achieving this stable pipeline was essential because both downstream components—motor control and the Raylib game—depend on timely motion readings.</p>
+                      <p>Once packets looked correct, Shiqi and Robbie split their development tracks. Shiqi owned the Python-based motor interface, while Robbie moved to the C/Raylib environment required for the slicing game.</p>
+                  </div>
+                  <div class="design-section">
+                      <h3><span>2</span> Milestone 2 — Motor-Control Development</h3>
+                      <p><strong>IMU filtering.</strong> Early complementary-filter tests produced noticeable drift and sluggish steering response. Since the schedule allowed additional iteration, Shiqi transitioned to a Mahony-based filter, which significantly improved stability and reduced orientation error to levels suitable for continuous real-time control.</p>
+                      <p><strong>Gesture-to-motor mapping.</strong> After assembling the robot platform, Shiqi implemented the mapping from filtered IMU orientation to forward and turning commands. During this stage, the team switched from the Lab 3 DC motor to a Parallax Feedback 360° high-speed servo, which offered stronger and more consistent motion. Several tuning rounds ensured that hand tilts translate into smooth, intuitive robot movement.</p>
+                  </div>
+                  <div class="design-section">
+                      <h3><span>3</span> Milestone 3 — Game Interaction Development</h3>
+                      <p>(Robbie will complete this section. A placeholder description can temporarily remain here.)</p>
+                  </div>
+              </div>
+      </div>
+
+    <hr id='figures'>
+
+      <div style="text-align:center;">
+              <h2>Figures, Drawings, and Supporting Media</h2>
+              <p style="text-align: left;padding: 0px 30px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum lorem nulla, consectetur at leo vel, pretium bibendum nisl. Cras blandit quam a enim ultrices, eu convallis enim posuere. Donec eleifend enim sed purus consectetur, vitae cursus lectus varius. Vivamus consectetur felis nec est venenatis posuere. Phasellus vitae aliquet erat. In laoreet lacinia mollis. Quisque iaculis nisl fermentum pharetra lobortis. Donec rhoncus dui sem, ac molestie leo tristique vel. Phasellus in nibh feugiat, fringilla lectus in, elementum magna. Etiam quis dui condimentum, tempus ex in, dapibus est. Cras ut congue augue. Donec ac enim ex. Ut id tristique risus, vel porttitor quam. Sed ultricies enim eu nibh porttitor, vel sodales enim feugiat. Fusce volutpat venenatis magna ac ultrices. Curabitur eget urna ut nulla mattis convallis non eu diam.</p>
+      </div>
+
+    <hr id='result'>
+
+      <div style="text-align:center;">
+              <h2>Results</h2>
+              <p style="text-align: left;padding: 0px 30px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum lorem nulla, consectetur at leo vel, pretium bibendum nisl. Cras blandit quam a enim ultrices, eu convallis enim posuere. Donec eleifend enim sed purus consectetur, vitae cursus lectus varius. Vivamus consectetur felis nec est venenatis posuere. Phasellus vitae aliquet erat. In laoreet lacinia mollis. Quisque iaculis nisl fermentum pharetra lobortis. Donec rhoncus dui sem, ac molestie leo tristique vel. Phasellus in nibh feugiat, fringilla lectus in, elementum magna. Etiam quis dui condimentum, tempus ex in, dapibus est. Cras ut congue augue. Donec ac enim ex. Ut id tristique risus, vel porttitor quam. Sed ultricies enim eu nibh porttitor, vel sodales enim feugiat. Fusce volutpat venenatis magna ac ultrices. Curabitur eget urna ut nulla mattis convallis non eu diam.</p>
+      </div>
+
+    <hr id='conclusion'>
+
+      <div style="text-align:center;">
+              <h2>Conclusions</h2>
+              <p style="text-align: left;padding: 0px 30px;">This section summarizes the key lessons learned, performance metrics we achieved, and whether the prototype met the original objectives.</p>
+      </div>
+
+    <hr id='future'>
+
+      <div style="text-align:center;">
+              <h2>Future Work</h2>
+              <p style="text-align: left;padding: 0px 30px;">Here we outline sensible next steps, such as hardening the enclosure, refining the algorithms, and preparing the build for broader deployment.</p>
+      </div>
+
+    <hr id='team'>
+
+    <div class="row" style="text-align:center;">
+          <h2>Team Contributions</h2>
+          <p style="text-align: left;padding: 0px 30px;">Each teammate owned a subset of the hardware, firmware, and documentation tasks, and we met daily to integrate and review progress.</p>
+          <div style="text-align:center;">
+              <img class="img-rounded" src="pics/group.jpg" alt="Generic placeholder image" style="width:60%;">
+              <h4>Project group picture</h4>
+          </div>
+          <div class="col-md-6" style="font-size:16px">
+              <img class="img-rounded" src="pics/a.png" alt="Generic placeholder image" width="240" height="240">
+              <h3>Rick</h3>
+              <p class="lead">netid@cornell.edu</p>
+              <p>Designed the overall software architecture (Just being himself).
+          </div>
+          <div class="col-md-6" style="font-size:16px">
+              <img class="img-rounded" src="pics/b.png" alt="Generic placeholder image" width="240" height="240">
+              <h3>Morty</h3>
+              <p class="lead">netid@cornell.edu</p>
+              <p>Tested the overall system.
+          </div>
+      </div>
+
+    <hr id='parts'>
+      <div style="font-size:18px">
+          <h2>Parts List</h2>
+          <ul>
+              <li>Raspberry Pi $35.00</li>
+              <li>Raspberry Pi Camera V2 $25.00</li>
+              <a href="https://www.adafruit.com/product/1463"><li>NeoPixel Ring - $9.95</li></a>
+              <li>LEDs, Resistors and Wires - Provided in lab</li>
+          </ul>
+          <h3>Total: $69.95</h3>
+      </div>
+      <hr id='references'>
+      <div style="font-size:18px">
+          <h2>References</h2>
+          <a href="https://picamera.readthedocs.io/">PiCamera Document</a><br>
+          <a href="http://www.micropik.com/PDF/SG90Servo.pdf">Tower Pro Servo Datasheet</a><br>
+          <a href="http://getbootstrap.com/">Bootstrap</a><br>
+          <a href="http://abyz.co.uk/rpi/pigpio/">Pigpio Library</a><br>
+          <a href="https://sourceforge.net/p/raspberry-gpio-python/wiki/Home/">R-Pi GPIO Document</a><br>
+
+      </div>
+
+    <hr id='code'>
+
+      <div class="row">
+              <h2>Code Appendix</h2>
+              <pre><code>
+// Hello World.c
+int main(){
+  printf("Hello World.\n");
+}
+              </code></pre>
+      </div>
+
+    </div><!-- /.container -->
+
+
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="dist/js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!-- <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script> -->
+  </body>
+</html>

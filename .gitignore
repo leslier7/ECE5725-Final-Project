@@ -107,7 +107,7 @@ android.*
 # WebAssembly release files
 *.data
 *.wasm
-*.html
+# *.html
 *.js
 !src/minshell.html
 !src/shell.html
