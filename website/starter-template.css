@@ -123,6 +123,64 @@ img {
     max-width: none;
 }
 
+.objective-list {
+    list-style: disc;
+    padding-left: 22px;
+    margin: 0;
+    text-align: left;
+}
+
+.objective-list li {
+    margin-bottom: 10px;
+}
+
+.design-sections {
+    padding: 0;
+    text-align: left;
+}
+
+.design-section {
+    margin-bottom: 35px;
+    padding: 0 30px 20px 30px;
+    border-bottom: 1px solid #e3e3e3;
+    max-width: 850px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.design-section:last-child {
+    border-bottom: none;
+}
+
+.design-section h3 {
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 14px 0;
+}
+
+.design-section h3 span {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #f3f3f3;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.design-section p {
+    margin: 0 auto 10px auto;
+    max-width: 850px;
+    text-align: left;
+}
+
+
+
 /* Header layout */
 .header-panel {
     background: #fff;
