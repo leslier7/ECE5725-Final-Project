@@ -259,3 +259,13 @@ img {
         text-align: center;
     }
 }
+
+.code-appendix h2,
+.code-appendix h3,
+.code-appendix p,
+.code-appendix ul {
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-width: none !important;
+}

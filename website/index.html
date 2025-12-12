@@ -166,6 +166,40 @@
       <div style="text-align:center;">
               <h2>Figures, Drawings, and Supporting Media</h2>
               <p style="text-align: left;padding: 0px 30px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum lorem nulla, consectetur at leo vel, pretium bibendum nisl. Cras blandit quam a enim ultrices, eu convallis enim posuere. Donec eleifend enim sed purus consectetur, vitae cursus lectus varius. Vivamus consectetur felis nec est venenatis posuere. Phasellus vitae aliquet erat. In laoreet lacinia mollis. Quisque iaculis nisl fermentum pharetra lobortis. Donec rhoncus dui sem, ac molestie leo tristique vel. Phasellus in nibh feugiat, fringilla lectus in, elementum magna. Etiam quis dui condimentum, tempus ex in, dapibus est. Cras ut congue augue. Donec ac enim ex. Ut id tristique risus, vel porttitor quam. Sed ultricies enim eu nibh porttitor, vel sodales enim feugiat. Fusce volutpat venenatis magna ac ultrices. Curabitur eget urna ut nulla mattis convallis non eu diam.</p>
+              <div style="margin: 30px 0;">
+                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 1: Glove schematic</p>
+                <img class="img-rounded" src="pics/gloveschematic.png" alt="Glove schematic" style="max-width:80%;height:auto;">
+                <p style="margin-top:8px;font-size:18px;">The schematic is very simple, just the battery and button. The button uses an internal pull-up resistor. A little bit of hot glue is put on the battery connection to make it stronger and reduce the chance of the wires breaking off.</p>
+              </div>
+
+              <div style="margin: 30px 0;">
+                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 2: Gloves with microcontroller and battery</p>
+                <img class="img-rounded" src="pics/GlovesOnTableMicrocontrollerView.jpg" alt="Glove microcontroller" style="max-width:80%;height:auto;">
+                <p style="margin-top:8px;font-size:18px;">The microcontrollers are hot glued to the gloves. The batteries are attched with velcro to make them easy to remove.</p>
+              </div>
+
+              <div style="margin: 30px 0;">
+                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 3: Gloves with button</p>
+                <img class="img-rounded" src="pics/GlovesOnTableButtonView.jpg" alt="Glove button" style="max-width:80%;height:auto;">
+                <p style="margin-top:8px;font-size:18px;">The buttons are also hot glued to the gloves. This figure also shows the JST connectors used to connect the batteries. This allows them to be fully removed.</p>
+              </div>
+
+              <div style="margin: 30px 0;">
+                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 4: Robot Top View</p>
+                <img class="img-rounded" src="pics/RobotTopView.jpg" alt="Robot top" style="max-width:80%;height:auto;">
+              </div>
+
+              <div style="margin: 30px 0;">
+                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 5: Fruit Samurai Title Screen</p>
+                <img class="img-rounded" src="pics/FruitSamuraiTitle.png" alt="Fruit title" style="max-width:80%;height:auto;">
+                <p style="margin-top:8px;font-size:18px;">The dots labeled "L" and "R" are the left and right cursors, respectively. To start the game, the user moves one of them over the Start button and presses the button on the corresponding glove.</p>
+              </div>
+
+              <div style="margin: 30px 0;">
+                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 6: Fruit Samurai Gameplay Screen</p>
+                <img class="img-rounded" src="pics/FruitSamuraiGameplay.png" alt="Fruit title" style="max-width:80%;height:auto;">
+                <p style="margin-top:8px;font-size:18px;">If the user presses either glove's button during gameplay, it re-centers both cursors</p>
+              </div>
       </div>
 
     <hr id='result'>
@@ -223,7 +257,8 @@
               <li>2x Buttons - Found in Robbie's spare parts drawer</li>
               <li>TODO add motors - TODO</li>
           </ul>
-          <h3>Total: $TODO</h3>
+          <h3>Total without Pi: $TODO</h3>
+          <h3>Total with Pi: $TODO</h3>
       </div>
       <hr id='references'>
       <div style="font-size:18px">
@@ -235,6 +270,7 @@
           <a href="https://www.raylib.com/">Raylib</a><br>
           <a href="https://www.raylib.com/cheatsheet/cheatsheet.html">Raylib Cheatsheet</a><br>
           <a href="https://github.com/raysan5/raylib-game-template">Raylib C Template</a><br>
+          <a href="https://wiki.seeedstudio.com/XIAO_BLE/">Seeed Studio XIAO nRF52840 Wiki</a><br>
           <a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/protocols/esb/index.html">nRF Enhanced ShockBurst Documentation</a><br>
           <a href="https://github.com/nrfconnect/sdk-nrf/tree/v3.1.0/samples">nRF Samples</a><br>
           <a href="https://github.com/nrfconnect/sdk-nrf/tree/v3.1.0/samples/esb">nRF ESB Samples</a><br>
@@ -245,14 +281,22 @@
 
     <hr id='code'>
 
-      <div class="row">
+      <div class="code-appendix" style="text-align:left;">
               <h2>Code Appendix</h2>
-              <pre><code>
-// Hello World.c
-int main(){
-  printf("Hello World.\n");
-}
-              </code></pre>
+              <p><strong>Full source code available on GitHub:</strong> <a href="https://github.com/leslier7/ECE5725-Final-Project/tree/main" target="_blank">https://github.com/leslier7/ECE5725-Final-Project/tree/main</a></p>
+              
+              <h3>Key Files and Directories</h3>
+              <div>
+                <ul>
+                  <li><strong>microcontroller/</strong> - Firmware for both the glove microcontroller and dongle, as well as old demos. </li>
+                  <li><strong>microcontroller/imu_tx</strong> - Firmware for the glove microcontroller. The left and right glove is set with a compiler flag. </li>
+                  <li><strong>microcontroller/dongle_rx</strong> - Firmware for the dongle. </li>
+                  <li><strong>pi/</strong> - Top level for all the software which runs on the Pi</li>
+                  <li><strong>pi/c-game/</strong> - Raylib C implementation of Fruit Samurai game</li>
+                  <li><strong>pi/TODO/</strong> - TODO motor control file path</li>
+                  <li><strong>website/</strong> - This documentation website</li>
+                </ul>
+              </div>
       </div>
 
     </div><!-- /.container -->
