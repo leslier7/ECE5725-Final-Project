@@ -11,12 +11,39 @@ set(RAYLIB_VERSION 5.5)
 
 FetchContent_Declare(
     raylib
-    DOWNLOAD_EXTRACT_TIMESTAMP OFF
-    URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
-    FIND_PACKAGE_ARGS
+    URL "https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz"
 )
 
-FetchContent_MakeAvailable(raylib)
+#FetchContent_MakeAvailable(raylib)
+#set(ENV{PKG_CONFIG_PATH} "/usr/local/lib/arm-linux-gnueabihf/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+#find_package(PkgConfig REQUIRED)
+#pkg_check_modules(RAYLIB REQUIRED RAYLIB)
+
+# Find header
+find_path(RAYLIB_INCLUDE_DIR
+    NAMES raylib.h
+    PATHS
+        /usr/local/include
+        /usr/include
+)
+
+# Find library
+find_library(RAYLIB_LIBRARY
+    NAMES raylib
+    PATHS
+        /usr/local/lib
+        /usr/local/lib/arm-linux-gnueabihf
+        /usr/lib/arm-linux-gnueabihf
+        /usr/lib
+)
+
+message(STATUS "RAYLIB_INCLUDE_DIR = ${RAYLIB_INCLUDE_DIR}")
+message(STATUS "RAYLIB_LIBRARY     = ${RAYLIB_LIBRARY}")
+
+if (NOT RAYLIB_INCLUDE_DIR OR NOT RAYLIB_LIBRARY)
+    message(FATAL_ERROR "Could not find raylib. Check raylib install paths.")
+endif()
+
 
 # Our Project
 add_executable(${PROJECT_NAME})
@@ -42,7 +69,19 @@ else()
 endif()
 
 #set(raylib_VERBOSE 1)
-target_link_libraries(${PROJECT_NAME} raylib)
+#target_link_libraries(${PROJECT_NAME} raylib atomic)
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${RAYLIB_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${RAYLIB_LIBRARY}
+    m          # libm  - math functions: sin, cos, sqrt, pow, etc.
+    dl         # libdl - dlopen/dlsym/dlclose
+    pthread    # libpthread - threads used by miniaudio & glfw
+    atomic     # libatomic - __atomic_* on 32-bit ARM
+)
+
+set(OPENGL_VERSION "2.1")
+set (GRAPHICS GRAPHICS_API_OPENGL_21)
 
 # Web Configurations
 if ("${PLATFORM}" STREQUAL "Web")
