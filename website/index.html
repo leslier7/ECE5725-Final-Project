@@ -97,14 +97,6 @@
         </div>
       </section>
 
-      <hr id="video">
-
-      <div class="center-block" style="text-align:center;">
-          <h2>Project Video</h2>
-          <iframe width="640" height="360" src="https://www.youtube.com/watch?v=et91Gea6CPk" frameborder="0" allowfullscreen></iframe>
-          <p style="margin-top:10px;">Demonstration clip highlighting the system in action.</p>
-      </div>
-
       <hr id="intro">
 
       <div style="text-align:center;">
@@ -117,11 +109,11 @@
     <hr id='obj'>
 
       <div style="text-align:center;">
-          <h2>Project Objective (Will make a new fig)</h2>
+          <h2>Project Objective</h2>
       </div>
       <div class="project-objective">
           <div class="project-objective__image">
-              <img class="img-rounded" src="pics/systemStructure.png" alt="Generic placeholder image" width="360" height="240">
+              <img class="img-rounded" src="pics/systemOverview.jpg" alt="Generic placeholder image" width="320" height="300">
           </div>
           <div class="project-objective__content">
               <ul class="objective-list">
@@ -131,6 +123,13 @@
                   <li>Use the IMU accelerometer to control two cursors in a video game built with C and Raylib.</li>
               </ul>
           </div>
+      </div>
+
+    <hr id="video">
+
+      <div class="center-block" style="text-align:center;">
+          <h2>Project Video</h2>
+          <iframe width="640" height="360" src="https://www.youtube.com/watch?v=et91Gea6CPk" frameborder="0" allowfullscreen></iframe>
       </div>
 
     <hr id='design-testing'>
@@ -150,8 +149,9 @@
                   </div>
                   <div class="design-section">
                       <h3><span>2</span> Milestone 2 — Motor-Control Development</h3>
-                      <p><strong>IMU filtering.</strong> Early complementary-filter tests produced noticeable drift and sluggish steering response. Since the schedule allowed additional iteration, Shiqi transitioned to a Mahony-based filter, which significantly improved stability and reduced orientation error to levels suitable for continuous real-time control.</p>
-                      <p><strong>Gesture-to-motor mapping.</strong> After assembling the robot platform, Shiqi implemented the mapping from filtered IMU orientation to forward and turning commands. During this stage, the team switched from the Lab 3 DC motor to a Parallax Feedback 360° high-speed servo, which offered stronger and more consistent motion. Several tuning rounds ensured that hand tilts translate into smooth, intuitive robot movement.</p>
+                      <p><strong>IMU filtering.</strong> Initial experiments used a simple complementary filter to fuse accelerometer and gyroscope readings. While this approach worked for coarse motion, it quickly revealed its limitations during steering: the heading estimate accumulated drift, reacted slowly to quick maneuvers, and lacked the precision needed for smooth gesture control. Since the timeline allowed for further refinement, Shiqi transitioned to a Mahony-based filter. This algorithm provided a more mathematically grounded orientation estimate by incorporating gyroscope feedback and corrective proportional-integral terms. After tuning the filter gains for our specific IMU, the system produced stable, low-noise roll and pitch estimates suitable for continuous real-time control. The improvement was immediately noticeable—tilts felt more responsive, and the robot no longer “wandered off” due to accumulated drift.</p>
+                      <p><strong>Gesture-to-motor mapping.</strong> Once reliable orientation estimates were available, Shiqi began designing the mapping from hand gestures to motor behavior. This required assembling the robot chassis, validating the servo power path, and ensuring the Raspberry Pi could generate stable PWM signals. Early mapping attempts used the Lab 3 DC motor system, but the torque was insufficient for smooth directional changes. To improve performance, the team replaced the drivetrain with a Parallax Feedback 360° high-speed servo. The servo offered higher stall torque, consistent rotation speed, and closed-loop position feedback—traits that made real-time gesture-driven control significantly more predictable.</p>
+                      <p>With the mechanical system stabilized, the next step involved translating tilt angles into forward and turning commands. Shiqi iterated through several proportional gains and deadband thresholds to prevent jitter while preserving responsiveness. Testing sessions involved holding the glove at various angles, observing wheel response, and adjusting scaling factors until the robot exhibited smooth, intuitive motion that matched hand gestures naturally. The result was a control pipeline that felt direct and continuous: mild tilts produced gentle course corrections, while larger motions triggered sharper turns or acceleration.</p>
                   </div>
                   <div class="design-section">
                       <h3><span>3</span> Milestone 3 — Game Development</h3>
@@ -162,66 +162,100 @@
               </div>
       </div>
 
-    <hr id='figures'>
-
-      <div style="text-align:center;">
-              <h2>Figures, Drawings, and Supporting Media</h2>
-              <p style="text-align: left;padding: 0px 30px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum lorem nulla, consectetur at leo vel, pretium bibendum nisl. Cras blandit quam a enim ultrices, eu convallis enim posuere. Donec eleifend enim sed purus consectetur, vitae cursus lectus varius. Vivamus consectetur felis nec est venenatis posuere. Phasellus vitae aliquet erat. In laoreet lacinia mollis. Quisque iaculis nisl fermentum pharetra lobortis. Donec rhoncus dui sem, ac molestie leo tristique vel. Phasellus in nibh feugiat, fringilla lectus in, elementum magna. Etiam quis dui condimentum, tempus ex in, dapibus est. Cras ut congue augue. Donec ac enim ex. Ut id tristique risus, vel porttitor quam. Sed ultricies enim eu nibh porttitor, vel sodales enim feugiat. Fusce volutpat venenatis magna ac ultrices. Curabitur eget urna ut nulla mattis convallis non eu diam.</p>
-              <div style="margin: 30px 0;">
-                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 1: Glove schematic</p>
-                <img class="img-rounded" src="pics/gloveschematic.png" alt="Glove schematic" style="max-width:80%;height:auto;">
-                <p style="margin-top:8px;font-size:18px;">The schematic is very simple, just the battery and button. The button uses an internal pull-up resistor. A little bit of hot glue is put on the battery connection to make it stronger and reduce the chance of the wires breaking off.</p>
-              </div>
-
-              <div style="margin: 30px 0;">
-                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 2: Gloves with microcontroller and battery</p>
-                <img class="img-rounded" src="pics/GlovesOnTableMicrocontrollerView.jpg" alt="Glove microcontroller" style="max-width:80%;height:auto;">
-                <p style="margin-top:8px;font-size:18px;">The microcontrollers are hot glued to the gloves. The batteries are attched with velcro to make them easy to remove.</p>
-              </div>
-
-              <div style="margin: 30px 0;">
-                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 3: Gloves with button</p>
-                <img class="img-rounded" src="pics/GlovesOnTableButtonView.jpg" alt="Glove button" style="max-width:80%;height:auto;">
-                <p style="margin-top:8px;font-size:18px;">The buttons are also hot glued to the gloves. This figure also shows the JST connectors used to connect the batteries. This allows them to be fully removed.</p>
-              </div>
-
-              <div style="margin: 30px 0;">
-                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 4: Robot Top View</p>
-                <img class="img-rounded" src="pics/RobotTopView.jpg" alt="Robot top" style="max-width:80%;height:auto;">
-              </div>
-
-              <div style="margin: 30px 0;">
-                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 5: Fruit Samurai Title Screen</p>
-                <img class="img-rounded" src="pics/FruitSamuraiTitle.png" alt="Fruit title" style="max-width:80%;height:auto;">
-                <p style="margin-top:8px;font-size:18px;">The dots labeled "L" and "R" are the left and right cursors, respectively. To start the game, the user moves one of them over the Start button and presses the button on the corresponding glove.</p>
-              </div>
-
-              <div style="margin: 30px 0;">
-                <p style="margin-top:8px;font-style:italic;font-size:25px;">Figure 6: Fruit Samurai Gameplay Screen</p>
-                <img class="img-rounded" src="pics/FruitSamuraiGameplay.png" alt="Fruit title" style="max-width:80%;height:auto;">
-                <p style="margin-top:8px;font-size:18px;">If the user presses either glove's button during gameplay, it re-centers both cursors</p>
-              </div>
-      </div>
-
     <hr id='result'>
 
       <div style="text-align:center;">
               <h2>Results</h2>
-              <p style="text-align: left;padding: 0px 30px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum lorem nulla, consectetur at leo vel, pretium bibendum nisl. Cras blandit quam a enim ultrices, eu convallis enim posuere. Donec eleifend enim sed purus consectetur, vitae cursus lectus varius. Vivamus consectetur felis nec est venenatis posuere. Phasellus vitae aliquet erat. In laoreet lacinia mollis. Quisque iaculis nisl fermentum pharetra lobortis. Donec rhoncus dui sem, ac molestie leo tristique vel. Phasellus in nibh feugiat, fringilla lectus in, elementum magna. Etiam quis dui condimentum, tempus ex in, dapibus est. Cras ut congue augue. Donec ac enim ex. Ut id tristique risus, vel porttitor quam. Sed ultricies enim eu nibh porttitor, vel sodales enim feugiat. Fusce volutpat venenatis magna ac ultrices. Curabitur eget urna ut nulla mattis convallis non eu diam.</p>
+              <p style="text-align: left;padding: 0px 30px;">Our system performed reliably during demonstration and met the expectations for both gesture-based robot control and game interaction.</p>
+              <p style="text-align: left;padding: 0px 30px;">For the motor-control subsystem, the robot responded accurately to hand tilts, enabling fine-grained directional control and smooth trajectory adjustments. The Mahony filter provided stable orientation estimates suitable for real-time operation, although its convergence time became noticeable during large, sudden orientation changes. These limitations were primarily due to the sensor precision of our IMU and the inherent lag in the filter’s feedback structure. Despite this, the robot achieved consistent responsiveness across trials, proving that our mapping strategy and proportional control logic were effective.</p>
+              <p style="text-align: left;padding: 0px 30px;">For the game interaction component, the system successfully translated IMU motion into on-screen cursor movement. However, cursor precision remained limited due to noise from the accelerometer and the difficulty of reconstructing accurate Cartesian positions from orientation alone. While the gameplay remained functional and enjoyable, this highlighted opportunities for algorithmic improvements and potential hardware upgrades.</p>
       </div>
 
     <hr id='conclusion'>
 
       <div style="text-align:center;">
               <h2>Conclusions</h2>
-              <p style="text-align: left;padding: 0px 30px;">Our final resuts were able to mostly meet our design specifications. We were able to control both hardware and softare using a direct 2.4GHz transmission from the microcontrollers. However, we also learned a lot about the limitations of 6-axis IMUs. Both of the control methods would have greatly benifited from having a 9-axis IMU so we could have two reference vectors instead of one. Our filter and sensor processing would have needed to be more complex, and the IMU would be more expensive. But we think those trade offs would be worth it for better performance.</p>
+              <p style="text-align: left;padding: 0px 30px;">
+                  Our final results were able to mostly meet our original design goals. 
+                  We successfully demonstrated two distinct interaction modes—robot control 
+                  and game control—using low-latency 2.4 GHz communication between the gloves 
+                  and the Raspberry Pi. The system proved that a gesture-based interface can 
+                  serve as a unified control method for both hardware and software applications.
+              </p>
+
+              <p style="text-align: left;padding: 0px 30px;">
+                  Through development, we also gained a deeper understanding of the limitations 
+                  of 6-axis IMUs. Both the motor-control and cursor-control pipelines would 
+                  have benefited from a 9-axis sensor, which would provide an additional 
+                  reference vector for more robust orientation reconstruction. While such an 
+                  upgrade introduces higher cost and more complex filtering requirements, 
+                  the performance improvements would be significant—particularly for reducing 
+                  drift and improving responsiveness.
+              </p>
+
+              <p style="text-align: left;padding: 0px 30px;">
+                  Overall, our prototype validated the feasibility of a dual-mode gesture 
+                  interface and highlighted clear paths for future refinement in sensor hardware, 
+                  filtering algorithms, and user-experience robustness.
+              </p>
       </div>
 
     <hr id='future'>
 
       <div style="text-align:center;">
               <h2>Future Work</h2>
-              <p style="text-align: left;padding: 0px 30px;">Here we outline sensible next steps, such as hardening the enclosure, refining the algorithms, and preparing the build for broader deployment.</p>
+              <p style="text-align: left;padding: 0px 30px;">There are several promising directions to extend and improve the current system:</p>
+              <p style="text-align: left;padding: 0px 30px;"><strong>Upgrade the IMU hardware.</strong> Our prototype relies on a 6-axis IMU, which constrains orientation reconstruction and cursor precision. Moving to a 9-axis device would provide an additional reference vector, reducing drift and boosting responsiveness for both robot control and game interaction.</p>
+              <p style="text-align: left;padding: 0px 30px;"><strong>Reduce control latency in the motor pipeline.</strong> Although the robot responds smoothly, large and rapid hand motions still reveal measurable delay between IMU updates and wheel commands. Streamlining the filtering stack or optimizing the Raspberry Pi control loop could unlock more aggressive tuning and faster driving dynamics.</p>
+              <p style="text-align: left;padding: 0px 30px;"><strong>Improve cursor control in the game mode.</strong> With only a 6-axis IMU, reconstructing absolute cursor positions remains noisy. Future revisions could leverage more advanced estimators or higher-grade IMUs to deliver smoother, more precise on-screen motion and a more natural gameplay feel.</p>
+              <p style="text-align: left;padding: 0px 30px;"><strong>Add flex-sensor inputs.</strong> The original concept included flex sensors to capture finger gestures. Integrating them would expand the input vocabulary—enabling mode switching, braking, or in-game actions—and make the glove a more versatile controller.</p>
+      </div>
+
+    <hr id='figures'>
+
+      <div class="figures-section" style="text-align:center;">
+              <h2>Figures, Drawings, and Supporting Media</h2>
+              <div class="figure-block">
+                <p class="figure-caption">Figure 1. Glove Wiring Schematic</p>
+                <img class="img-rounded" src="pics/gloveschematic.png" alt="Glove schematic" style="max-width:50%;height:auto;">
+                <p class="figure-desc">Simplified diagram showing the LiPo supply, button with internal pull-up, and the IMU breakout. We reinforced the JST joints with hot glue to keep the connections reliable during demos.</p>
+              </div>
+
+              <div class="figure-block">
+                <p class="figure-caption">Figure 2. Glove Electronics Layout</p>
+                <img class="img-rounded" src="pics/GlovesOnTableMicrocontrollerView.jpg" alt="Glove microcontroller" style="max-width:50%;height:auto;">
+                <p class="figure-desc">Each XIAO nRF52840 is mounted on the back of the glove and backed by a Velcro-mounted battery so packs can be swapped quickly without tools.</p>
+              </div>
+
+              <div class="figure-block">
+                <p class="figure-caption">Figure 3. Button Placement</p>
+                <img class="img-rounded" src="pics/GlovesOnTableButtonView.jpg" alt="Glove button" style="max-width:50%;height:auto;">
+                <p class="figure-desc">The trigger button is positioned for an easy thumb press. Swappable JST connectors let us disconnect the pack entirely for charging or transport.</p>
+              </div>
+
+              <div class="figure-block">
+                <p class="figure-caption">Figure 4. Robot Top View</p>
+                <img class="img-rounded" src="pics/RobotTopView.jpg" alt="Robot top" style="max-width:50%;height:auto;">
+                <p class="figure-desc">Top-down look at the Pi, motor driver, and wiring harness routing. Servos sit farther back to balance the battery weight.</p>
+              </div>
+
+              <div class="figure-block">
+                <p class="figure-caption">Figure 5. Robot Side View</p>
+                <img class="img-rounded" src="pics/motorSideView.png" alt="Robot top" style="max-width:50%;height:auto;">
+                <p class="figure-desc">Side look at the Pi, motor driver, and wiring harness routing.</p>
+              </div>
+
+              <div class="figure-block">
+                <p class="figure-caption">Figure . Fruit Samurai Title Screen</p>
+                <img class="img-rounded" src="pics/FruitSamuraiTitle.png" alt="Fruit Samurai title screen" style="max-width:50%;height:auto;">
+                <p class="figure-desc">Players start rounds by hovering a cursor over “Start.” The L and R dots correspond to the left and right gloves, so orientation feedback is immediate.</p>
+              </div>
+
+              <div class="figure-block">
+                <p class="figure-caption">Figure 7. Fruit Samurai Gameplay</p>
+                <img class="img-rounded" src="pics/FruitSamuraiGameplay.png" alt="Fruit Samurai gameplay" style="max-width:50%;height:auto;">
+                <p class="figure-desc">Live gameplay capture showing simultaneous left/right cursors slicing fruit. Pressing either glove button re-centers both cursors if they drift off-screen.</p>
+              </div>
       </div>
 
     <hr id='team'>
@@ -230,20 +264,24 @@
           <h2>Team Contributions</h2>
           <p style="text-align: left;padding: 0px 30px;">Each teammate owned a subset of the hardware, firmware, and documentation tasks, and we met daily to integrate and review progress.</p>
           <div style="text-align:center;">
-              <img class="img-rounded" src="pics/group.jpg" alt="Generic placeholder image" style="width:60%;">
+              <img class="img-rounded" src="pics/GroupPhoto.png" alt="Generic placeholder image" style="width:60%;">
               <h4>Project group picture</h4>
           </div>
-          <div class="col-md-6" style="font-size:16px">
-              <img class="img-rounded" src="pics/RobbiePhoto.jpg" alt="Generic placeholder image" width="240" height="300">
-              <h3>Robbie Leslie</h3>
-              <p class="lead">rwl228@cornell.edu</p>
-              <p>Game and Microcontroller developer
+          <div class="col-md-6 member-card">
+              <img class="img-rounded" src="pics/RobbiePhoto.jpg" alt="Robbie Leslie" width="240" height="300">
+              <div class="member-card__text">
+                  <h3>Robbie Leslie</h3>
+                  <p class="member-email">rwl228@cornell.edu</p>
+                  <p>Game and Microcontroller Developer</p>
+              </div>
           </div>
-          <div class="col-md-6" style="font-size:16px">
-              <img class="img-rounded" src="pics/b.png" alt="Generic placeholder image" width="240" height="240">
-              <h3>Morty</h3>
-              <p class="lead">netid@cornell.edu</p>
-              <p>Tested the overall system.
+          <div class="col-md-6 member-card">
+              <img class="img-rounded" src="pics/StevenPhoto.png" alt="Shiqi Liu" width="240" height="300">
+              <div class="member-card__text">
+                  <h3>Shiqi Liu</h3>
+                  <p class="member-email">sl3646@cornell.edu</p>
+                  <p>Robot Control and IMU System Developer</p>
+              </div>
           </div>
       </div>
 
@@ -255,11 +293,12 @@
               <a href="https://www.digikey.com/en/products/detail/seeed-technology-co-ltd/102010469/16652896"><li>2x Seeed Studio XIAO nRF52840 Plus - $31.98</li></a>
               <a href="https://www.digikey.com/en/products/detail/nordic-semiconductor-asa/NRF52840-DONGLE/9491124"><li>nRF52840 Dongle - $10.00</li></a>
               <a href="https://www.adafruit.com/product/2011"><li>2x 3.7V 1200mAh LiPo Battery - $19.90 (found in lab)</li></a>
+              <a href="https://www.parallax.com/product/parallax-feedback-360-high-speed-servo/"><li>2x Parallax Feedback 360° High Speed Servo - $55.98 (found in lab)</li></a>
               <li>2x Buttons - Found in Robbie's spare parts drawer</li>
-              <li>TODO add motors - TODO</li>
           </ul>
-          <h3>Total without Pi: $TODO</h3>
-          <h3>Total with Pi: $TODO</h3>
+          
+          <h3>Total with Pi: $162.86</h3>
+          <h3>Total without Pi: $117.86 (with $75.88 provided by lab)</h3>
       </div>
       <hr id='references'>
       <div style="font-size:18px">
@@ -276,6 +315,7 @@
           <a href="https://github.com/nrfconnect/sdk-nrf/tree/v3.1.0/samples">nRF Samples</a><br>
           <a href="https://github.com/nrfconnect/sdk-nrf/tree/v3.1.0/samples/esb">nRF ESB Samples</a><br>
           <a href="https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/sensor/lsm6dso">Zephyr LSM6DSO Example</a><br>
+          <a href="https://www.mouser.com/datasheet/2/321/900-00360-Feedback-360-HS-Servo-v1.2-1147206.pdf?srsltid=AfmBOop2REHpS4Hkxb7wehlhGF292uaTMrZgcLZLxUbnWiFKV7wN1jQN">Parallax Feedback 360° High Speed Servo Datasheet</a><br>
           
 
       </div>
@@ -294,7 +334,7 @@
                   <li><strong>microcontroller/dongle_rx</strong> - Firmware for the dongle. </li>
                   <li><strong>pi/</strong> - Top level for all the software which runs on the Pi</li>
                   <li><strong>pi/c-game/</strong> - Raylib C implementation of Fruit Samurai game</li>
-                  <li><strong>pi/TODO/</strong> - TODO motor control file path</li>
+                  <li><strong>pi/testFinalProject/</strong> - Python implementation of motor control and signal processing
                   <li><strong>website/</strong> - This documentation website</li>
                 </ul>
               </div>
