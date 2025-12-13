@@ -112,3 +112,6 @@ android.*
 !src/minshell.html
 !src/shell.html
 
+microcontroller/**/*.html
+pi/**/*.html
+
