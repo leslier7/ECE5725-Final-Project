@@ -75,7 +75,7 @@ void InitTitleScreen(void)
     
     // Init buttons
     Rectangle temp_rect = (Rectangle){screenWidth/2, screenHeight/2 + 130, 150, 80};
-    InitButton(&start_button, temp_rect, BLUE, RED, "Start");
+    InitButton(&start_button, temp_rect, GREEN, RED, "Start");
     
     temp_rect = (Rectangle){screenWidth/2 + 250, screenHeight/2 + 130, 200, 80};
     InitButton(&quit_button, temp_rect, RED, BLUE, "Quit");
@@ -193,10 +193,6 @@ void DrawTitleScreen(void)
         DrawText(text, x, 150, fontSize, BLACK);
     }
     
-    // Draw cursors
-    DrawCursor(&right_cursor);
-    DrawCursor(&left_cursor);
-    
     // Draw Title
     //DrawText("Fruit Ninja Clone!", screenWidth / 2 - 210, 70, 55, BLACK);
     const char *title = "Fruit Samurai!";
@@ -231,7 +227,11 @@ void DrawTitleScreen(void)
     DrawText(watermelon, 100, 335, fontSize, BLACK);
     
     const char *bomb = "Bomb = Game over!";
-    DrawText(bomb, 100, 400, fontSize, BLACK);
+    DrawText(bomb, 100, 410, fontSize, BLACK);
+    
+    // Draw cursors
+    DrawCursor(&right_cursor);
+    DrawCursor(&left_cursor);
 }
 
 // Title Screen Unload logic
